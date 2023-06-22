@@ -34,15 +34,20 @@ class database_converter:
             original_table = 'president'
 
         # Generating democrat, republican, total votes of every election.
+        # I put special here - > shoul be modified later I think. special data set-> the out put query below also have special election data sperated from the normal one.
+        #  Therefore, the query coming after blow query should be implemented using which election between special and normal
+        # applied -> need to decide first which one we should apply.
         senate_query = ("""
-        SELECT year, state, state_po, office, candidate, {}, candidatevotes, totalvotes,
+        SELECT year, state, state_po, office, district,special, stage, candidate, {}, candidatevotes, CAST(MAX(totalvotes) AS INTEGER) AS totalvotes,
                 ROUND(MAX(democratvotes)) AS democratvotes, CAST(MAX(republicanvotes) AS INTEGER) AS republicanvotes
-        FROM ( SELECT year, state, state_po, office, candidate, {}, candidatevotes, totalvotes,
+        FROM ( SELECT year, state, state_po, office, district,special,stage, candidate, {}, SUM(candidatevotes) as candidatevotes, totalvotes,
                CAST((CASE WHEN {} = 'DEMOCRAT' THEN candidatevotes END) AS INTEGER) AS democratvotes,
                CAST((CASE WHEN {} = 'REPUBLICAN' THEN candidatevotes END) AS INTEGER) AS republicanvotes
                 FROM {}
+                GROUP BY year, state_po, district,special,candidate
+                HAVING MAX(candidatevotes)
         ) AS subquery
-        GROUP BY year, state_po, totalvotes
+        GROUP BY year, state_po, district, special
         HAVING MAX(candidatevotes);
         """.format(party_column, party_column, party_column, party_column, original_table))
 
@@ -89,7 +94,8 @@ class database_converter:
                 )AS subquery
                 WHERE subquery.state_po = {}.state_po AND subquery.year = {}.year
                 );
-        """.format(modified_table, modified_table,modified_table,modified_table, modified_table, modified_table, modified_table,
+        """.format(modified_table, modified_table, modified_table, modified_table, modified_table, modified_table,
+                   modified_table,
                    modified_table, modified_table, modified_table, modified_table, modified_table, modified_table)
 
         cursor = self.conn.cursor()
@@ -130,16 +136,17 @@ class database_converter:
 
             for i in range(length):
                 if '(' in name_arr[i] or ')' in name_arr[i]:
-                    new_name = name_arr[i].replace('(', "")
-                    new_name = new_name.replace(')', "")
-                    df.at[index, 'nickname'] = str(new_name).upper()
+                    pass
+                    # new_name = name_arr[i].replace('(', "")
+                    # new_name = new_name.replace(')', "")
+                    # df.at[index, 'nickname'] = str(new_name).upper()
 
                 elif "JR." == str(name_arr[i]).upper() or "SR." == str(name_arr[i]).upper() or "III" == str(
                         name_arr[i]).upper() \
                         or "II" == str(name_arr[i]).upper() or "JR" == str(name_arr[i]).upper() or "SR" == str(
                     name_arr[i]).upper():
-                    df.at[index, 'suffix'] = str(name_arr[i]).replace('.', "").upper()
-
+                    # df.at[index, 'suffix'] = str(name_arr[i]).replace('.', "").upper()
+                    pass
                 else:
                     if ',' in name_arr[i]:
                         name_element = name_arr[i].replace(',', "")
@@ -168,19 +175,21 @@ class database_converter:
             for i in range(length):
                 if '"' in name_arr[i]:
                     new_name = name_arr[i].replace('"', "")
-                    df.at[index, 'nickname'] = str(new_name).upper()
+                    # df.at[index, 'nickname'] = str(new_name).upper()
+                    nickname = str(new_name).upper()
 
                 elif '(' in name_arr[i] or ')' in name_arr[i]:
                     new_name = name_arr[i].replace('(', "")
                     new_name = new_name.replace(')', "")
-                    df.at[index, 'nickname'] = str(new_name).upper()
+                    nickname = str(new_name).upper()
+                    # df.at[index, 'nickname'] = str(new_name).upper()
 
                 elif "JR." == str(name_arr[i]).upper() or "SR." == str(name_arr[i]).upper() or "III" == str(
                         name_arr[i]).upper() \
                         or "II" == str(name_arr[i]).upper() or "JR" == str(name_arr[i]).upper() or "SR" == str(
                     name_arr[i]).upper():
-                    df.at[index, 'suffix'] = str(name_arr[i]).replace('.', "").upper()
-
+                    pass
+                    # df.at[index, 'suffix'] = str(name_arr[i]).replace('.', "").upper()
                 else:
                     # last name with suffix usually comes with ','.
                     # following code is for removing ',' sign and putting the name into new_name_arr
@@ -197,8 +206,10 @@ class database_converter:
 
             if len(new_name_arr) == 1:
                 df.at[index, 'last_name'] = str(new_name_arr[0]).upper()
-                if df.loc[index, 'nickname'] is not None:
-                    df.at[index, 'first_name'] = str(df.loc[index, 'nickname']).upper()
+                # if df.loc[index, 'nickname'] is not None:
+                if nickname is not None:
+                    # df.at[index, 'first_name'] = str(df.loc[index, 'nickname']).upper()
+                    df.at[index, 'first_name'] = nickname
             else:
                 df.at[index, 'last_name'] = str(new_name_arr[-1]).upper()
                 df.at[index, 'first_name'] = str(new_name_arr[0]).upper()
@@ -231,7 +242,7 @@ class database_converter:
                 mark = 'p'
 
             temp_key = str(row['year']) + row['state_po'] + row[party_column] if row[
-                                                                                party_column] is not None else "none" + mark
+                                                                                     party_column] is not None else "none" + mark
             dict_df[temp_key] = index
 
             compare_key1 = str(row['year'] - year_term) + row['state_po'] + row[party_column] if row[
@@ -324,7 +335,7 @@ class database_converter:
         # if one side has only one name -> compare only that part and see -> store this in to another dataframe and return it.
         # if two names exist but has less similarity -> changes
         # how about comparing the whole name rather than first and last name -> not really sure if this is a good way since they have different order of naming convention.
-        # fisrt and last name comparison should be a better way.
+        # first and last name comparison should be a better way.
         # s1 = SequenceMatcher(None, row['candidate'], compare_name1).ratio()
         # rows that are not assigned with bioguide is the error names that has no similarity in the hsall data -> need to deal with seperately.
         for index, row in df_error_names.iterrows():
@@ -335,10 +346,27 @@ class database_converter:
                                                                                  'office'] == 'US SENATE' else 'President'
             congress_no = ((row['year'] + 1 - 1789) / 2) + 1
 
-            correct_rows = df_correct_names.loc[
-                (df_correct_names['congress'] == congress_no) & (df_correct_names['state_abbrev'] == state_po) & (
-                        df_correct_names['chamber'] == office)]
+            # president dataset does not have district column
+            if office != 'President':
+                # in senate dataset, there is only statewide district code.
+                district = 0 if row['district'] == 'statewide' else row['district']
+
+                # there is a case there is 0 district which mean there is only one district in the state.
+                # in this case Hsall dataset takes that district to number 1 district not 0
+                # we are modifying in here to match those numbers.
+                if office == 'House' and district == 0:
+                    district = 1
+
+                correct_rows = df_correct_names.loc[
+                    (df_correct_names['congress'] == congress_no) & (df_correct_names['state_abbrev'] == state_po) & (
+                            df_correct_names['chamber'] == office) & (df_correct_names['district_code'] == district)]
+            else:
+                correct_rows = df_correct_names.loc[
+                    (df_correct_names['congress'] == congress_no) & (df_correct_names['state_abbrev'] == state_po) & (
+                            df_correct_names['chamber'] == office)]
+
             for inner_index, inner_row in correct_rows.iterrows():
+
                 first_similarity = None
                 last_similarity = None
 
@@ -366,8 +394,8 @@ class database_converter:
                     df_error_names.at[index, 'first_name'] = inner_row['first_name']
                     df_error_names.at[index, 'last_name'] = inner_row['last_name']
                     df_error_names.at[index, 'bioguide_id'] = inner_row['bioguide_id']
-                    df_error_names.at[index, 'nickname'] = inner_row['nickname']
-                    df_error_names.at[index, 'suffix'] = inner_row['suffix']
+                    # df_error_names.at[index, 'nickname'] = inner_row['nickname']
+                    # df_error_names.at[index, 'suffix'] = inner_row['suffix']
 
         df_error_names = df_error_names.replace({np.nan: None})
         return df_error_names

@@ -8,7 +8,7 @@ from name_app_model import Model
 from name_app_controller import Controller
 
 conn = sqlite3.connect('total_info.db')
-# #
+
 db_converter = database_converter.database_converter(conn)
 
 df_senate = db_converter.convert_database('s')

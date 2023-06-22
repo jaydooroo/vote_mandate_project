@@ -14,7 +14,7 @@ class View(tk.Tk):
     def __init__(self, controller: Controller):
         super().__init__()
         self.title('name_correction_ui')
-        self.geometry("1200x800")
+        self.geometry("1200x600")
         self.controller = controller
 
         main_frame = Frame(self)
@@ -73,16 +73,20 @@ class TreeviewFrame(ttk.Frame):
         my_tree.pack()
 
         my_tree['columns'] = (
-            "index", "year", "congress", "state_po", "office", "first_name", "last_name", "full_name")
+            "index", "year", "congress", "state_po", "office", "district", "first_name", "last_name",
+            "full_name", "special", "stage")
         my_tree.column('#0', width=0, stretch=NO)
-        my_tree.column("index", anchor=CENTER, width=140)
-        my_tree.column("year", anchor=CENTER, width=140)
-        my_tree.column("congress", anchor=CENTER, width=140)
-        my_tree.column("state_po", anchor=CENTER, width=140)
-        my_tree.column("office", anchor=CENTER, width=140)
-        my_tree.column("first_name", anchor=W, width=140)
-        my_tree.column("last_name", anchor=W, width=140)
-        my_tree.column("full_name", anchor=W, width=140)
+        my_tree.column("index", anchor=CENTER, width=90)
+        my_tree.column("year", anchor=CENTER, width=90)
+        my_tree.column("congress", anchor=CENTER, width=90)
+        my_tree.column("state_po", anchor=CENTER, width=90)
+        my_tree.column("office", anchor=CENTER, width=90)
+        my_tree.column('district', anchor=CENTER, width=90)
+        my_tree.column('special', anchor=CENTER, width=90)
+        my_tree.column("first_name", anchor=W, width=90)
+        my_tree.column("last_name", anchor=W, width=90)
+        my_tree.column("full_name", anchor=W, width=180)
+        my_tree.column("stage", anchor=CENTER, width=90)
 
         my_tree.heading("#0", text="", anchor=W)
         my_tree.heading("index", text="index", anchor=W)
@@ -90,9 +94,12 @@ class TreeviewFrame(ttk.Frame):
         my_tree.heading("congress", text="congress", anchor=W)
         my_tree.heading("state_po", text="state_po", anchor=W)
         my_tree.heading("office", text="office", anchor=W)
+        my_tree.heading('district', text="district", anchor=W)
+        my_tree.heading('special', text='special', anchor=W)
         my_tree.heading("first_name", text="first_name", anchor=W)
         my_tree.heading("last_name", text="last_name", anchor=W)
         my_tree.heading("full_name", text="full_name", anchor=W)
+        my_tree.heading("stage", text="stage", anchor=W)
         my_tree.tag_configure('oddrow', background="white")
         my_tree.tag_configure('evenrow', background="lightblue")
 
@@ -125,9 +132,9 @@ class TreeviewFrame(ttk.Frame):
             if row['bioguide_id'] is None:
                 congress_no = ((row['year'] + 1 - 1789) / 2) + 1
                 my_tree.insert("", 'end', iid=index, values=(
-                    index, row['year'], congress_no, row['state_po'], row['office'], row['first_name'],
+                    index, row['year'], congress_no, row['state_po'], row['office'], row['district'], row['first_name'],
                     row['last_name'],
-                    row['candidate']))
+                    row['candidate'], row['special'], row['stage']))
         # else:
 
     def item_selected(self, event):
@@ -157,18 +164,20 @@ class SuggestionTreeviewFrame(ttk.Frame):
         sug_tree = ttk.Treeview(self, yscrollcommand=tree_scroll.set, selectmode="browse")
         sug_tree.pack()
 
-        sug_tree['columns'] = ("first_name", "last_name", "full_name", "bioguide_id", "similarity")
+        sug_tree['columns'] = ("first_name", "last_name", "full_name", "district", "bioguide_id", "similarity")
         sug_tree.column('#0', width=0, stretch=NO)
-        sug_tree.column("first_name", anchor=W, width=140)
-        sug_tree.column("last_name", anchor=W, width=140)
-        sug_tree.column("full_name", anchor=W, width=140)
-        sug_tree.column("bioguide_id", anchor=W, width=140)
-        sug_tree.column("similarity", anchor=W, width=140)
+        sug_tree.column("first_name", anchor=W, width=90)
+        sug_tree.column("last_name", anchor=W, width=90)
+        sug_tree.column("full_name", anchor=W, width=180)
+        sug_tree.column("district", anchor=W, width=90)
+        sug_tree.column("bioguide_id", anchor=W, width=90)
+        sug_tree.column("similarity", anchor=W, width=110)
 
         sug_tree.heading("#0", text="", anchor=W)
         sug_tree.heading("first_name", text="first_name", anchor=W)
         sug_tree.heading("last_name", text="last_name", anchor=W)
         sug_tree.heading("full_name", text="full_name", anchor=W)
+        sug_tree.heading("district", text="district", anchor=W)
         sug_tree.heading("bioguide_id", text="bioguide_id", anchor=W)
         sug_tree.heading("similarity", text="similarity", anchor=W)
         sug_tree.bind('<<TreeviewSelect>>', self.item_selected)
@@ -181,7 +190,8 @@ class SuggestionTreeviewFrame(ttk.Frame):
 
         for index, row in df_sug_names.iterrows():
             self.sug_tree.insert("", 'end', iid=index,
-                                 values=(row['first_name'], row['last_name'], row['bioname'], row['bioguide_id'],
+                                 values=(row['first_name'], row['last_name'], row['bioname'], row['district_code'],
+                                         row['bioguide_id'],
                                          row['similarity']))
 
     def clear_treeview(self):
@@ -205,6 +215,7 @@ class LabelFrame(ttk.LabelFrame):
     def __init__(self, container, controller: Controller):
         super().__init__(container)
         # controaller saved
+        self.original_val = None
         self.controller = controller
         # initializing widgets
         self['text'] = 'Editor'
@@ -212,69 +223,124 @@ class LabelFrame(ttk.LabelFrame):
 
         # create labels and Boxes
         self.il = Label(self, text="ID")
-        self.il.grid(row=0, column=0, padx=2, pady=2)
+        self.il.grid(row=1, column=0, padx=2, pady=2)
         self.id_box = Entry(self)
-        self.id_box.grid(row=1, column=0, padx=2, pady=2)
+        self.id_box.grid(row=2, column=0, padx=2, pady=2)
 
         self.yl = Label(self, text="year")
-        self.yl.grid(row=0, column=1, padx=2, pady=2)
+        self.yl.grid(row=1, column=1, padx=2, pady=2)
         self.year_box = Entry(self)
-        self.year_box.grid(row=1, column=1, padx=2, pady=2)
+        self.year_box.grid(row=2, column=1, padx=2, pady=2)
 
         self.cl = Label(self, text="congress")
-        self.cl.grid(row=0, column=2, padx=2, pady=2)
+        self.cl.grid(row=1, column=2, padx=2, pady=2)
         self.congress_box = Entry(self)
-        self.congress_box.grid(row=1, column=2, padx=2, pady=2)
+        self.congress_box.grid(row=2, column=2, padx=2, pady=2)
 
         self.sl = Label(self, text="state_po")
-        self.sl.grid(row=0, column=3, padx=2, pady=2)
+        self.sl.grid(row=1, column=3, padx=2, pady=2)
         self.state_box = Entry(self)
-        self.state_box.grid(row=1, column=3, padx=2, pady=2)
+        self.state_box.grid(row=2, column=3, padx=2, pady=2)
 
         self.ol = Label(self, text="office")
-        self.ol.grid(row=0, column=4, padx=2, pady=2)
+        self.ol.grid(row=1, column=4, padx=2, pady=2)
         self.office_box = Entry(self)
-        self.office_box.grid(row=1, column=4, padx=2, pady=2)
+        self.office_box.grid(row=2, column=4, padx=2, pady=2)
 
         self.fl = Label(self, text="first_name")
-        self.fl.grid(row=0, column=5, padx=2, pady=2)
+        self.fl.grid(row=1, column=5, padx=2, pady=2)
         self.first_name_box = Entry(self)
-        self.first_name_box.grid(row=1, column=5, padx=2, pady=2)
+        self.first_name_box.grid(row=2, column=5, padx=2, pady=2)
 
         self.ll = Label(self, text="last_name")
-        self.ll.grid(row=0, column=6, padx=2, pady=2)
+        self.ll.grid(row=1, column=6, padx=2, pady=2)
         self.last_name_box = Entry(self)
-        self.last_name_box.grid(row=1, column=6, padx=2, pady=2)
+        self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
+
+        # self.ll = Label(self, text="nickname")
+        # self.ll.grid(row=1, column=6, padx=2, pady=2)
+        # self.last_name_box = Entry(self)
+        # self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
+        #
+        # self.ll = Label(self, text="suffix ")
+        # self.ll.grid(row=1, column=6, padx=2, pady=2)
+        # self.last_name_box = Entry(self)
+        # self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
 
         self.ful = Label(self, text="full_name")
-        self.ful.grid(row=0, column=7, padx=2, pady=2)
+        self.ful.grid(row=1, column=7, padx=2, pady=2)
         self.full_name_box = Entry(self)
-        self.full_name_box.grid(row=1, column=7, padx=2, pady=2)
+        self.full_name_box.grid(row=2, column=7, padx=2, pady=2)
 
         self.biol = Label(self, text="bioguide_id")
-        self.biol.grid(row=0, column=8, padx=2, pady=2)
+        self.biol.grid(row=1, column=8, padx=2, pady=2)
         self.bioguide_id_box = Entry(self)
-        self.bioguide_id_box.grid(row=1, column=8, padx=2, pady=2)
+        self.bioguide_id_box.grid(row=2, column=8, padx=2, pady=2)
 
         self.upload_bt = ttk.Button(self, text='upload', command=self.upload_values)
         # self.upload_bt.place(anchor= 'center')
-        self.upload_bt.grid(row=2, column=3, pady=2, padx=2)
+        self.upload_bt.grid(row=3, column=3, pady=2, padx=2)
 
         self.refresh_bt = ttk.Button(self, text='refresh', command=self.refresh)
-        self.refresh_bt.grid(row=2, column=4, padx=2, pady=2)
+        self.refresh_bt.grid(row=3, column=4, padx=2, pady=2)
+
+        self.clear_history_bt = ttk.Button(self, text='clear history', command=self.clear_history)
+        self.clear_history_bt.grid(row=3, column=5, padx=2, pady=2)
+
+        self.reflect_bt = ttk.Button(self, text='reflect history', command=self.reflect_history)
+        self.reflect_bt.grid(row=3, column=6, padx=2, pady=2)
+
+        # self.autosave_l = Label(self, text="Upload_history_autosave")
+        # self.autosave_l.grid(row=2, column=5, pady=2, padx=2)
+        # self.autosave_on_img = PhotoImage(file="./icon/on.png")
+        # self.autosave_off_img = PhotoImage(file="./icon/off.png")
+        # self.autosave_bt = ttk.Button(self,
+        #                               image=self.autosave_on_img if self.controller.is_on_autosave else self.autosave_off_img,
+        #                               command=self.switch)
+        # self.autosave_bt.grid(row=3, column=5, padx= 2, pady= 2)
+
+        self.chk_autosave = tk.IntVar()
+
+        self.save_cbt = Checkbutton(self, text='save_history', variable=self.chk_autosave, onvalue=1, offvalue=0,
+                                    command=self.autosave_history)
+        self.save_cbt.grid(row=0, column=0, padx=2, pady=2)
+
+        # self.chk_reflect = tk.IntVar()
+        # self.reflect_cbt = Checkbutton(self, text='reflect_history', variable=self.chk_reflect, onvalue=1, offvalue=0,
+        #                                command=self.auto_reflect_history)
+        # self.reflect_cbt.grid(row = 0, column= 1, pady=2, padx=2 )
+
+    def reflect_history(self):
+        self.controller.reflect_history()
+        self.controller.refresh_all()
+
+        # if self.chk_reflect.get() == 1:
+        #     self.controller.is_on_reflect = True
+        # else:
+        #     self.controller.is_on_reflect = False
+
+    def clear_history(self):
+        self.controller.clear_history()
 
     def refresh(self):
         self.controller.refresh_all()
 
+    #     need to add nickname and suffix here.
+
     def upload_values(self):
-        values_dict = {'id': self.id_box.get(), 'first_name': self.first_name_box.get(),
+        values_dict = {'id': self.id_box.get(), 'office': self.office_box.get(),
+                       'first_name': self.first_name_box.get(),
                        'last_name': self.last_name_box.get(), 'full_name': self.full_name_box.get(),
-                       'bio_id': self.bioguide_id_box.get()}
+                       'bio_id': self.bioguide_id_box.get(), 'original_name': self.original_val[7]}
+        # if self.controller.is_on_autosave:
 
         self.controller.upload_values(values_dict)
         self.controller.refresh_all()
 
     def update_entries(self, values):
+
+        self.original_val = values
+
         self.id_box.delete(0, tk.END)
         self.year_box.delete(0, tk.END)
         self.congress_box.delete(0, tk.END)
@@ -291,12 +357,12 @@ class LabelFrame(ttk.LabelFrame):
             self.congress_box.insert(0, values[2])
             self.state_box.insert(0, values[3])
             self.office_box.insert(0, values[4])
-            self.first_name_box.insert(0, values[5])
-            self.last_name_box.insert(0, values[6])
-            self.full_name_box.insert(0, values[7])
+            self.first_name_box.insert(0, values[6])
+            self.last_name_box.insert(0, values[7])
+            self.full_name_box.insert(0, values[8])
             # TODO: need to check if this works of not.
             if 'bioguide_id' in values and len(values) == 8:
-                self.bioguide_id_box.insert(0, values[8])
+                self.bioguide_id_box.insert(0, values[9])
 
     def update_names(self, values):
 
@@ -309,7 +375,7 @@ class LabelFrame(ttk.LabelFrame):
             self.first_name_box.insert(0, values[0])
             self.last_name_box.insert(0, values[1])
             self.full_name_box.insert(0, values[2])
-            self.bioguide_id_box.insert(0, values[3])
+            self.bioguide_id_box.insert(0, values[4])
 
     def clear_all(self):
         self.id_box.delete(0, tk.END)
@@ -321,6 +387,24 @@ class LabelFrame(ttk.LabelFrame):
         self.last_name_box.delete(0, tk.END)
         self.full_name_box.delete(0, tk.END)
         self.bioguide_id_box.delete(0, tk.END)
+
+    def autosave_history(self):
+        if self.chk_autosave.get() == 1:
+            self.controller.is_on_autosave = True
+            self.controller.check_or_create_autosave_table()
+            # self.controller.is_on_autosave = False
+        else:
+            self.controller.is_on_autosave = False
+            # self.controller.is_on_autosave = True
+
+    def switch(self):
+
+        if self.controller.is_on_autosave:
+            self.autosave_bt.config(image=self.autosave_off_img)
+            self.controller.is_on_autosave = False
+        else:
+            self.autosave_bt.config(image=self.autosave_on_img)
+            self.controller.is_on_autosave = True
 
 
 class DBFrame(ttk.LabelFrame):

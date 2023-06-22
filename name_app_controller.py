@@ -21,6 +21,10 @@ class Controller:
         self.model = Model(error_df, correct_df)
 
         self.converter = database_converter(self.conn)
+        self.history_table = 'names_modified_history'
+
+        self.is_on_autosave = False
+        # self.is_on_reflect = False
         # self.view = View(self)
 
     def run(self):
@@ -73,23 +77,47 @@ class Controller:
     def update_names(self, values):
         self.view.update_names(values)
 
+    # TODO: need to assign suffix and nickname as well.
     def upload_values(self, values_dict):
         id = values_dict['id']
         first_name = values_dict['first_name']
         last_name = values_dict['last_name']
         full_name = values_dict['full_name']
         bio_id = values_dict['bio_id']
+        office = values_dict['office']
+        original_name = values_dict['original_name']
 
         if id != "" and bio_id != "":
+            # additional_info_query = """SELECT nickname, suffix
+            #                         FROM {}
+            #                         WHERE rowid = {}
+            # """.format(self.error_db_name, int(id) + 1)
+            #
+            # df = pd.read_sql_query(additional_info_query, self.conn)
+            # row = df.iloc[0]
+            #
+            # nickname = "'" + row['nickname'] + "'" if row['nickname'] is not None else 'null'
+            # suffix = "'" + row['suffix'] + "'" if row['suffix'] is not None else 'null'
+
             query = """
                            UPDATE {}
-                           SET first_name = '{}', last_name = '{}', candidate = '{}', bioguide_id = '{}'
+                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}'
                            WHERE rowid = {};
-                   """.format(self.error_db_name, first_name, last_name, full_name, bio_id, int(id) + 1)
+                   """.format(self.error_db_name, first_name, last_name,full_name, bio_id, int(id) + 1)
 
             cursor = self.conn.cursor()
             cursor.execute(query)
             self.conn.commit()
+
+            # TODO: need to check if it is auto save or not and implement auto save -> deal with table existance 
+            # if
+            if self.is_on_autosave:
+                query = """
+                        INSERT INTO {} (id, office, last_name, first_name, full_name, bioguide_id, origin_table) 
+                        VALUES ({}, '{}', '{}', '{}', '{}', '{}', '{}');
+                """.format(self.history_table, int(id) + 1, office, last_name, first_name, full_name, bio_id, self.error_db_name)
+                cursor.execute(query)
+                self.conn.commit()
 
     def pull_error_df(self):
         return self.model.pull_error_df()
@@ -104,9 +132,71 @@ class Controller:
 
         self.refresh_all()
 
+    def check_or_create_autosave_table(self):
+        cursor = self.conn.cursor()
+
+        # table_name = 'names_modified_history'
+
+        # query = """
+        #         SELECT name
+        #         FROM sqlite_master
+        #         WHERE type = 'table' AND name = '{}';
+        # """.format(table_name)
+        #
+        # result = cursor.execute(query)
+        #
+        # if not result:
+        query = """
+            CREATE TABLE IF NOT EXISTS {}(
+             id INTEGER,
+             office TEXT, 
+             last_name TEXT,
+             first_name TEXT,
+             full_name TEXT,
+             bioguide_id TEXT,
+             origin_table TEXT
+            );
+        """.format(self.history_table)
+
+        cursor.execute(query)
+        self.conn.commit()
+
+    def clear_history(self):
+        cursor = self.conn.cursor()
+
+        query = """
+                DELETE FROM {};
+        """.format(self.history_table)
+
+        cursor.execute(query)
+        self.conn.commit()
+
     # check if the new_error_df has bioguide_id if there is none, run reset erroneous names method in converter to assign proper names into it.
     # need to set it on database first and retrieve it after that.
     # It could be better to apply this functionality into retrieve df from db method.Need to carefully plan this.
+
+    def reflect_history(self):
+
+        query = """
+            SELECT *
+            FROM {}
+            WHERE origin_table = '{}' 
+        """.format(self.history_table, self.error_db_name)
+
+        history_df = pd.read_sql_query(query, self.conn)
+        cursor = self.conn.cursor()
+
+        for index, row in history_df.iterrows():
+
+            query = """
+                           UPDATE {}
+                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}'
+                           WHERE rowid = {};
+                   """.format(self.error_db_name, row['first_name'], row['last_name'], row['full_name'], row['bioguide_id'], int(row['id']))
+
+            cursor.execute(query)
+            self.conn.commit()
+
 
     def refresh_all(self):
         new_correct_df = self.retrieve_df_from_db(self.correct_db_name)
@@ -119,3 +209,5 @@ class Controller:
         self.model.push_error_df(new_error_df)
         self.model.push_correct_df(new_correct_df)
         self.view.refresh_all()
+
+
