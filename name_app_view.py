@@ -126,15 +126,38 @@ class TreeviewFrame(ttk.Frame):
             self.my_tree.delete(i)
 
     def add_items(self, df: pd.DataFrame, my_tree):
+        # There should be at least bioguide_id, year, state_po, first name, last name, candidate and office columns for this to work properly.
 
         for index, row in df.iterrows():
             bio = row['bioguide_id']
-            if row['bioguide_id'] is None:
-                congress_no = ((row['year'] + 1 - 1789) / 2) + 1
+            year = row['year']
+            state_po = row['state_po']
+            office = row['office']
+            first_name = row['first_name']
+            last_name = row['last_name']
+            full_name = row['candidate']
+            if 'special' in df.columns:
+                special = row['special']
+            else:
+                special = None
+
+            if 'district' in df.columns:
+                district = row['district']
+            else:
+                district = None
+
+            if 'stage' in df.columns:
+                stage = row['stage']
+            else:
+                stage = None
+
+            if bio is None:
+
+                congress_no = ((year + 1 - 1789) / 2) + 1
                 my_tree.insert("", 'end', iid=index, values=(
-                    index, row['year'], congress_no, row['state_po'], row['office'], row['district'], row['first_name'],
-                    row['last_name'],
-                    row['candidate'], row['special'], row['stage']))
+                    index, year, congress_no, state_po, office, district, first_name,
+                    last_name,
+                    full_name, special, stage))
         # else:
 
     def item_selected(self, event):

@@ -8,9 +8,9 @@ df_senate_data = pd.read_csv('1976-2020-senate.csv')
 
 df_house_data = pd.read_csv('1976-2020-house.csv')
 
+df_president_data = pd.read_csv('1976-2020-president.csv')
+
 df_nominate = pd.read_csv('HSall_members.csv')
-
-
 
 # Data Clean up
 
@@ -28,6 +28,7 @@ print(df_senate_data['candidate'])
 # Load data file to SQLite
 df_senate_data.to_sql('from1976to2020_senate', conn, if_exists='replace')
 df_nominate.to_sql('HSall_members', conn, if_exists='replace')
-df_house_data.to_sql('from1976to2020_house',conn, if_exists='replace')
+df_house_data.to_sql('from1976to2020_house', conn, if_exists='replace')
+df_president_data.to_sql('from1976to2020_president', conn, if_exists='replace')
 # close connection
 conn.close()
