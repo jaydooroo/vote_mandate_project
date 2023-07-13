@@ -10,6 +10,8 @@ class president_converter:
     def __init__(self, conn):
         self.conn = conn
 
+    # upload input df format of data to db as a Table
+    # if same name exists in the db. Replace it.
     def upload_df_to_database(self, df: pd.DataFrame, name: str):
         df.to_sql(name, self.conn, if_exists='replace')
 
@@ -23,14 +25,15 @@ class president_converter:
 
         return df
 
+    # dems_votes_year and gop_votes_year are added and shows only major candidates of each election(dems and gop candidates)
     def convert_database(self):
         query = """  
                 DROP TABLE IF EXISTS name_modified_president;
                 
                 CREATE TABLE name_modified_president AS
                 SELECT year, office, candidate, party_detailed, candidatevotes, 
-                CAST((CASE WHEN party_detailed  = 'DEMOCRAT' THEN candidatevotes END) AS INTEGER) AS dems_votes_year, 
-                CAST ((CASE WHEN party_detailed = 'REPUBLICAN' THEN candidatevotes END) AS INTEGER) AS gop_votes_year
+                CAST((CASE WHEN party_detailed  = 'DEMOCRAT' THEN candidatevotes END) AS REAL) AS dems_votes_year, 
+                CAST ((CASE WHEN party_detailed = 'REPUBLICAN' THEN candidatevotes END) AS REAL) AS gop_votes_year
 				FROM(
                     SELECT year, office, candidate, party_detailed, sum(candidatevotes) as candidatevotes
 				    FROM (
@@ -91,6 +94,9 @@ class president_converter:
 
         cursor.executescript(query)
 
+
+    # automatically assign names from hsall db to the names in the current name_modified_presdient database
+    # using similarity.
     def reset_erroneous_name(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame, limit_similarity):
 
         for index, row in df_error_names.iterrows():
@@ -133,10 +139,12 @@ class president_converter:
                         df_error_names.at[index, 'first_name'] = inner_row['first_name']
                         df_error_names.at[index, 'last_name'] = inner_row['last_name']
                         df_error_names.at[index, 'bioguide_id'] = inner_row['bioguide_id']
+                        df_error_names.at[index, 'match'] = 1
 
         df_error_names = df_error_names.replace({np.nan: None})
         return df_error_names
 
+    # Interprete name and set first and last name according to the name.
     def interprete_names(self, df):
 
         error_df = pd.DataFrame()

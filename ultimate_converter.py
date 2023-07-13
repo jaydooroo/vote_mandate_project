@@ -4,15 +4,22 @@ from difflib import SequenceMatcher
 import numpy as np
 import math
 
+
+#  converter class that is used after modifying house, senate and president db.
+# it is used to merge and add more columns in the merged db.
 class ultimate_converter:
 
     def __init__(self, conn):
         self.conn = conn
 
+    # upload input df format of data to db as a Table
+    # if same name exists in the db. Replace it.
     def upload_df_to_database(self, df: pd.DataFrame, name: str):
         df.to_sql(name, self.conn, if_exists='replace')
 
-    def merge_nokken_poole_with_votes(self):
+    # merge hsall db which has nokken pool data with house and senate data
+    # join is used to merge. join through bioguide or canadidate name, state and congress.
+    def merge_nokken_poole_with_h_s(self):
         query = """
             DROP TABLE IF EXISTS combined_vote_result;
 
@@ -29,7 +36,8 @@ class ultimate_converter:
             FROM name_modified_house
             UNION
 		    SELECT * 
-            FROM name_modified_senate);
+            FROM name_modified_senate
+            );
 
             DROP TABLE IF EXISTS merged_nokken_pool;
 
@@ -49,6 +57,45 @@ class ultimate_converter:
 
         cursor.executescript(query)
 
+    # add presidential election vote share for democratic and republican to merged dataset(merged_nokken_pool)
+    def add_pres_vote_share(self):
+        query = """
+        
+        ALTER TABLE merged_nokken_pool ADD COLUMN dems_pres_vote_share;
+        ALTER TABLE merged_nokken_pool ADD COLUMN gop_pres_vote_share;
+
+        
+     UPDATE merged_nokken_pool
+		SET dems_pres_vote_share = (
+		
+		SELECT dems_pres_vote_share
+		FROM
+		(
+		SELECT congress,dems_votes_year/totalvotes as dems_pres_vote_share
+		FROM name_modified_president
+		)as subquery
+		WHERE subquery.congress = merged_nokken_pool.congress or (subquery.congress + 1)= merged_nokken_pool.congress
+		),
+		gop_pres_vote_share = (
+		
+		SELECT gop_pres_vote_share
+		FROM
+		(
+		SELECT congress,gop_votes_year/totalvotes as gop_pres_vote_share
+		FROM name_modified_president
+		)as subquery
+		WHERE subquery.congress = merged_nokken_pool.congress or (subquery.congress + 1)= merged_nokken_pool.congress
+		)
+        """
+
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
+
+    # add subterm column into the merged_nokken_pool table.
+    # subterm is only for senate.
+    # senator seves for three congress since they have 6 years term.
+    # it calculates if the senators are serving first,second or third congress term and assign it to subterm column.
     def add_subterm_senate(self):
         query = """
         ALTER TABLE merged_nokken_pool ADD subterm INTEGER;
@@ -109,6 +156,11 @@ class ultimate_converter:
 
         self.upload_df_to_database(df, 'merged_nokken_pool')
 
+    # add recent vote share for senate as well as avg vote share.
+    # recent vote share means that the most recent voteshare for senator election in the same state.
+    # It just use row that has lowest subterm varaible in the same state to calculate it.
+
+    # avg senate vote share is the average vote share of the according year and state.
     def add_recent_avg_senate_vote_share(self):
 
         #  adding most recent dems and gop voteshare as well as avg voteshare for both
@@ -123,8 +175,8 @@ class ultimate_converter:
         SELECT congress, state_abbrev, chamber, 
         dems_vote_share_district as recent_dems_vote_share_senate, 
         gop_vote_share_district as recent_gop_vote_share_senate,
-        AVG(dems_vote_share_district)  as dems_avg_vote_share, 
-        AVG(gop_vote_share_district) as gop_avg_vote_share
+        AVG(dems_vote_share_district)  as dems_avg_vote_share_senate, 
+        AVG(gop_vote_share_district) as gop_avg_vote_share_senate
         FROM merged_nokken_pool
         WHERE chamber = 'Senate'
         GROUP BY congress, state_abbrev
@@ -139,7 +191,7 @@ class ultimate_converter:
         nokken.dems_vote_share_district, nokken.gop_vote_share_district, 
         nokken.dems_vote_share_state, nokken.gop_vote_share_state,
         recent.recent_dems_vote_share_senate, recent.recent_gop_vote_share_senate, 
-        recent.dems_avg_vote_share, recent.gop_avg_vote_share,
+        recent.dems_avg_vote_share_senate, recent.gop_avg_vote_share_senate,
         nokken.subterm
         FROM merged_nokken_pool nokken
         LEFT JOIN most_recent_senate_vote_share_state recent 
@@ -148,7 +200,64 @@ class ultimate_converter:
         DROP TABLE merged_nokken_pool;
 
         ALTER TABLE temp_merged_nokken_pool RENAME TO merged_nokken_pool;
+        
+        UPDATE merged_nokken_pool
+        SET recent_dems_vote_share_senate = (
+	    SELECT subquery.recent_dems_vote_share_senate
+	    FROM (
+	    SELECT congress, chamber, state_abbrev, bioname,recent_dems_vote_share_senate, subterm
+	    FROM merged_nokken_pool
+	    GROUP BY congress, state_abbrev
+	    HAVING min(subterm)
+	    ) as subquery
+	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+	
+	    ),
+	    recent_gop_vote_share_senate = (
+	
+		SELECT subquery.recent_gop_vote_share_senate
+	    FROM (
+	    SELECT congress, chamber, state_abbrev, bioname,recent_gop_vote_share_senate, subterm
+	    FROM merged_nokken_pool
+	    GROUP BY congress, state_abbrev
+	    HAVING min(subterm)
+	    ) as subquery
+	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+	    );
+	    
+	    
 
+ALTER TABLE merged_nokken_pool ADD COLUMN recent_dems_vote_share_house REAL;
+
+ALTER TABLE merged_nokken_pool ADD COLUMN recent_gop_vote_share_house REAL; 
+
+UPDATE merged_nokken_pool
+SET recent_dems_vote_share_house = (
+	SELECT subquery.dems_vote_share_state
+	FROM (
+	SELECT dems_vote_share_state, state_abbrev, congress, chamber
+	FROM merged_nokken_pool
+	WHERE chamber = 'House' and dems_vote_share_state IS NOT NULL
+	GROUP BY state_abbrev, congress,chamber
+	
+	)AS subquery
+	WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+),
+
+recent_gop_vote_share_house = (
+	SELECT subquery.gop_vote_share_state
+	FROM (
+	SELECT gop_vote_share_state, state_abbrev, congress, chamber
+	FROM merged_nokken_pool
+	WHERE chamber = 'House' and gop_vote_share_state IS NOT NULL
+	GROUP BY state_abbrev, congress,chamber 
+	
+	)AS subquery
+	WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+
+);
+        
+        
         COMMIT;
         """
         cursor = self.conn.cursor()

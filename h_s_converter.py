@@ -13,6 +13,9 @@ class h_s_converter:
     def upload_df_to_database(self, df: pd.DataFrame, name: str):
         df.to_sql(name, self.conn, if_exists='replace')
 
+    # convert only house and senate database.
+    # add democratic and republican votes
+    #
     def convert_database(self, office_type):
         if office_type.upper() == 'H':
             original_table = 'from1976to2020_house'
@@ -47,13 +50,13 @@ class h_s_converter:
             HAVING MAX(candidatevotes);
             """.format(party_column, party_column, party_column, party_column, original_table)
 
-        df_senate = pd.read_sql_query(senate_query, self.conn)
+        df = pd.read_sql_query(senate_query, self.conn)
 
-        self.interprete_names(df_senate)
+        self.interprete_names(df)
 
-        print(df_senate.columns)
+        print(df.columns)
 
-        self.upload_df_to_database(df_senate, modified_table)
+        self.upload_df_to_database(df, modified_table)
 
         # Generating democrats, Republican total votes of the state and year of the election
 
@@ -76,7 +79,7 @@ class h_s_converter:
                     ), gop_total_votes_state = (
                     SELECT subquery.gop_total_votes_state
                     FROM (
-                    SELECT SUM(democratvotes)AS dems_total_votes_state, SUM(republicanvotes) as gop_total_votes+_state, SUM(totalvotes) as total_votes_state,state_po, year
+                    SELECT SUM(democratvotes)AS dems_total_votes_state, SUM(republicanvotes) as gop_total_votes_state, SUM(totalvotes) as total_votes_state,state_po, year
                     FROM {}
                     GROUP BY state_po, year
                     )AS subquery
@@ -97,7 +100,7 @@ class h_s_converter:
         cursor = self.conn.cursor()
 
         cursor.executescript(query)
-        return df_senate
+        return df
 
 
 
@@ -337,6 +340,8 @@ class h_s_converter:
                     df_error_names.at[index, 'first_name'] = inner_row['first_name']
                     df_error_names.at[index, 'last_name'] = inner_row['last_name']
                     df_error_names.at[index, 'bioguide_id'] = inner_row['bioguide_id']
+                    # if it found the match -> need to indicate it so that I can use if it is matched orr not later in the ui.
+                    df_error_names.at[index, 'match'] = 1
                     # df_error_names.at[index, 'nickname'] = inner_row['nickname']
                     # df_error_names.at[index, 'suffix'] = inner_row['suffix']
 

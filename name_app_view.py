@@ -151,8 +151,7 @@ class TreeviewFrame(ttk.Frame):
             else:
                 stage = None
 
-            if bio is None:
-
+            if bio is None and (row['match'] is None or row['match'] != 1):
                 congress_no = ((year + 1 - 1789) / 2) + 1
                 my_tree.insert("", 'end', iid=index, values=(
                     index, year, congress_no, state_po, office, district, first_name,
@@ -302,16 +301,19 @@ class LabelFrame(ttk.LabelFrame):
 
         self.upload_bt = ttk.Button(self, text='upload', command=self.upload_values)
         # self.upload_bt.place(anchor= 'center')
-        self.upload_bt.grid(row=3, column=3, pady=2, padx=2)
+        self.upload_bt.grid(row=3, column=2, pady=2, padx=2)
 
         self.refresh_bt = ttk.Button(self, text='refresh', command=self.refresh)
-        self.refresh_bt.grid(row=3, column=4, padx=2, pady=2)
+        self.refresh_bt.grid(row=3, column=3, padx=2, pady=2)
 
-        self.clear_history_bt = ttk.Button(self, text='clear history', command=self.clear_history)
-        self.clear_history_bt.grid(row=3, column=5, padx=2, pady=2)
+        self.clear_history_bt = ttk.Button(self, text='clear all history', command=self.clear_history)
+        self.clear_history_bt.grid(row=3, column=4, padx=2, pady=2)
 
         self.reflect_bt = ttk.Button(self, text='reflect history', command=self.reflect_history)
-        self.reflect_bt.grid(row=3, column=6, padx=2, pady=2)
+        self.reflect_bt.grid(row=3, column=5, padx=2, pady=2)
+
+        self.delete_history_bt = ttk.Button(self, text='delete current db history', command=self.delete_history)
+        self.delete_history_bt.grid(row = 3, column = 6, padx=2, pady=2)
 
         # self.autosave_l = Label(self, text="Upload_history_autosave")
         # self.autosave_l.grid(row=2, column=5, pady=2, padx=2)
@@ -332,6 +334,10 @@ class LabelFrame(ttk.LabelFrame):
         # self.reflect_cbt = Checkbutton(self, text='reflect_history', variable=self.chk_reflect, onvalue=1, offvalue=0,
         #                                command=self.auto_reflect_history)
         # self.reflect_cbt.grid(row = 0, column= 1, pady=2, padx=2 )
+
+    def delete_history(self):
+        self.controller.delete_history()
+        self.controller.refresh_all()
 
     def reflect_history(self):
         self.controller.reflect_history()
@@ -375,16 +381,24 @@ class LabelFrame(ttk.LabelFrame):
         self.bioguide_id_box.delete(0, tk.END)
 
         if values:
-            self.id_box.insert(0, values[0])
-            self.year_box.insert(0, values[1])
-            self.congress_box.insert(0, values[2])
-            self.state_box.insert(0, values[3])
-            self.office_box.insert(0, values[4])
-            self.first_name_box.insert(0, values[6])
-            self.last_name_box.insert(0, values[7])
-            self.full_name_box.insert(0, values[8])
+            if values[0] != 'None':
+                self.id_box.insert(0, values[0])
+            if values[1] != 'None':
+                self.year_box.insert(0, values[1])
+            if values[2] != 'None':
+                self.congress_box.insert(0, values[2])
+            if values[3] != 'None':
+                self.state_box.insert(0, values[3])
+            if values[4] != 'None':
+                self.office_box.insert(0, values[4])
+            if values[6] != 'None':
+                self.first_name_box.insert(0, values[6])
+            if values[7] != 'None':
+                self.last_name_box.insert(0, values[7])
+            if values[8] != 'None':
+                self.full_name_box.insert(0, values[8])
             # TODO: need to check if this works of not.
-            if 'bioguide_id' in values and len(values) == 8:
+            if 'bioguide_id' in values and len(values) >= 8 and values[9] != 'None':
                 self.bioguide_id_box.insert(0, values[9])
 
     def update_names(self, values):
@@ -395,10 +409,14 @@ class LabelFrame(ttk.LabelFrame):
         self.bioguide_id_box.delete(0, tk.END)
 
         if values:
-            self.first_name_box.insert(0, values[0])
-            self.last_name_box.insert(0, values[1])
-            self.full_name_box.insert(0, values[2])
-            self.bioguide_id_box.insert(0, values[4])
+            if values[0] != 'None':
+                self.first_name_box.insert(0, values[0])
+            if values[1] != 'None':
+                self.last_name_box.insert(0, values[1])
+            if values[2] != 'None':
+                self.full_name_box.insert(0, values[2])
+            if values[4] != 'None':
+                self.bioguide_id_box.insert(0, values[4])
 
     def clear_all(self):
         self.id_box.delete(0, tk.END)

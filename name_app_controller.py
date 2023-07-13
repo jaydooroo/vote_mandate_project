@@ -7,6 +7,7 @@ from tkinter import ttk
 import tkinter as tk
 from difflib import SequenceMatcher
 from name_app_model import Model
+import h_s_converter as h_s
 
 
 class Controller:
@@ -20,7 +21,7 @@ class Controller:
         correct_df = self.retrieve_df_from_db(correct_db_name)
         self.model = Model(error_df, correct_df)
 
-        self.converter = database_converter(self.conn)
+        self.converter = h_s.h_s_converter(self.conn)
         self.history_table = 'names_modified_history'
 
         self.is_on_autosave = False
@@ -101,7 +102,7 @@ class Controller:
 
             query = """
                            UPDATE {}
-                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}'
+                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}', match = 1
                            WHERE rowid = {};
                    """.format(self.error_db_name, first_name, last_name,full_name, bio_id, int(id) + 1)
 
@@ -190,18 +191,30 @@ class Controller:
 
             query = """
                            UPDATE {}
-                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}'
+                           SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}', match = 1
                            WHERE rowid = {};
                    """.format(self.error_db_name, row['first_name'], row['last_name'], row['full_name'], row['bioguide_id'], int(row['id']))
 
             cursor.execute(query)
             self.conn.commit()
 
+    def delete_history(self):
+        cursor = self.conn.cursor()
+
+        query = """
+                DELETE FROM {} 
+                WHERE origin_table = '{}'
+        """.format(self.history_table, self.error_db_name)
+
+        cursor.execute(query)
+        self.conn.commit()
 
     def refresh_all(self):
         new_correct_df = self.retrieve_df_from_db(self.correct_db_name)
         new_error_df = self.retrieve_df_from_db(self.error_db_name)
 
+        #  this can only apply for h_s dataset not for president.
+        #  need to work on it to change it.
         if 'bioguide_id' not in new_error_df:
             new_error_df = self.converter.reset_erroneous_names(new_error_df, new_correct_df, 0.8)
             new_error_df = new_error_df.drop(['index'], axis=1)
