@@ -1,7 +1,6 @@
 import sqlite3
 import tkinter
 import pandas as pd
-import database_converter
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk

@@ -94,10 +94,9 @@ class president_converter:
 
         cursor.executescript(query)
 
-
     # automatically assign names from hsall db to the names in the current name_modified_presdient database
     # using similarity.
-    def reset_erroneous_name(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame, limit_similarity):
+    def auto_correct_names(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame, limit_similarity):
 
         for index, row in df_error_names.iterrows():
 
@@ -145,7 +144,7 @@ class president_converter:
         return df_error_names
 
     # Interprete name and set first and last name according to the name.
-    def interprete_names(self, df):
+    def interpret_names(self, df):
 
         error_df = pd.DataFrame()
 

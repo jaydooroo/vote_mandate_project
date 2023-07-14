@@ -43,7 +43,7 @@ class ultimate_converter:
 
             CREATE TABLE merged_nokken_pool AS
             SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, CAST(nokken.district_code as INTEGER) as district, nokken.state_abbrev,
-            nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, abs(nokken.nokken_poole_dim1) as abs_nominate_dim1, 
+            nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, abs(nokken.nokken_poole_dim1) as abs_nokken_poole_dim1, 
             CAST(vote.special as INTEGER) as special, vote.stage, vote.party, vote.vote_share, vote.dems_vote_share_district, vote.gop_vote_share_district, 
             vote.dems_vote_share_state, vote.gop_vote_share_state
             FROM name_modified_HSall nokken
@@ -186,7 +186,7 @@ class ultimate_converter:
 
         CREATE TABLE temp_merged_nokken_pool AS 
         SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, nokken.district, nokken.state_abbrev,
-        nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, nokken.abs_nominate_dim1,
+        nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, nokken.abs_nokken_poole_dim1,
         nokken.special, nokken.stage, nokken.party, nokken.vote_share, 
         nokken.dems_vote_share_district, nokken.gop_vote_share_district, 
         nokken.dems_vote_share_state, nokken.gop_vote_share_state,
@@ -227,38 +227,52 @@ class ultimate_converter:
 	    
 	    
 
-ALTER TABLE merged_nokken_pool ADD COLUMN recent_dems_vote_share_house REAL;
+        ALTER TABLE merged_nokken_pool ADD COLUMN recent_dems_vote_share_house REAL;
 
-ALTER TABLE merged_nokken_pool ADD COLUMN recent_gop_vote_share_house REAL; 
+        ALTER TABLE merged_nokken_pool ADD COLUMN recent_gop_vote_share_house REAL; 
 
-UPDATE merged_nokken_pool
-SET recent_dems_vote_share_house = (
-	SELECT subquery.dems_vote_share_state
-	FROM (
-	SELECT dems_vote_share_state, state_abbrev, congress, chamber
-	FROM merged_nokken_pool
-	WHERE chamber = 'House' and dems_vote_share_state IS NOT NULL
-	GROUP BY state_abbrev, congress,chamber
-	
-	)AS subquery
-	WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
-),
+        UPDATE merged_nokken_pool
+        SET recent_dems_vote_share_house = (
+	        SELECT subquery.dems_vote_share_state
+	        FROM (
+	        SELECT dems_vote_share_state, state_abbrev, congress, chamber
+	        FROM merged_nokken_pool
+	        WHERE chamber = 'House' and dems_vote_share_state IS NOT NULL
+	        GROUP BY state_abbrev, congress,chamber
+	        )AS subquery
+	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+        ),
 
-recent_gop_vote_share_house = (
-	SELECT subquery.gop_vote_share_state
-	FROM (
-	SELECT gop_vote_share_state, state_abbrev, congress, chamber
-	FROM merged_nokken_pool
-	WHERE chamber = 'House' and gop_vote_share_state IS NOT NULL
-	GROUP BY state_abbrev, congress,chamber 
-	
-	)AS subquery
-	WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
-
-);
-        
+        recent_gop_vote_share_house = (
+	    SELECT subquery.gop_vote_share_state
+	    FROM (
+	    SELECT gop_vote_share_state, state_abbrev, congress, chamber
+	    FROM merged_nokken_pool
+	    WHERE chamber = 'House' and gop_vote_share_state IS NOT NULL
+	    GROUP BY state_abbrev, congress,chamber 
+	    )AS subquery
+	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
+	    );
         
         COMMIT;
         """
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
+
+    def create_result_table(self):
+
+        query = """
+        DROP TABLE IF EXiSTS merged_nokken_poole_1976_2020;
+        
+        CREATE TABLE merged_nokken_poole_1976_2020 AS
+        SELECT congress, chamber, district, state_abbrev, bioname, bioguide_id, nokken_poole_dim1,abs_nokken_poole_dim1,
+        special, stage, party, vote_share, dems_vote_share_district, gop_vote_share_district, dems_vote_share_state, gop_vote_share_state,
+        recent_dems_vote_share_senate, recent_gop_vote_share_senate, recent_dems_vote_share_house, recent_gop_vote_share_house,
+        dems_avg_vote_share_senate, gop_avg_vote_share_senate, dems_pres_vote_share, gop_pres_vote_share, subterm 
+        FROM merged_nokken_pool
+        WHERE vote_share IS NOT NULL
+        """
+
         cursor = self.conn.cursor()
         cursor.executescript(query)

@@ -1,14 +1,12 @@
 import sqlite3
 import tkinter
 import pandas as pd
-from database_converter import database_converter
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
 from difflib import SequenceMatcher
 from name_app_model import Model
 import h_s_converter as h_s
-
 
 class Controller:
     def __init__(self, db_path, error_db_name, correct_db_name):
@@ -89,16 +87,6 @@ class Controller:
         original_name = values_dict['original_name']
 
         if id != "" and bio_id != "":
-            # additional_info_query = """SELECT nickname, suffix
-            #                         FROM {}
-            #                         WHERE rowid = {}
-            # """.format(self.error_db_name, int(id) + 1)
-            #
-            # df = pd.read_sql_query(additional_info_query, self.conn)
-            # row = df.iloc[0]
-            #
-            # nickname = "'" + row['nickname'] + "'" if row['nickname'] is not None else 'null'
-            # suffix = "'" + row['suffix'] + "'" if row['suffix'] is not None else 'null'
 
             query = """
                            UPDATE {}
@@ -136,17 +124,6 @@ class Controller:
     def check_or_create_autosave_table(self):
         cursor = self.conn.cursor()
 
-        # table_name = 'names_modified_history'
-
-        # query = """
-        #         SELECT name
-        #         FROM sqlite_master
-        #         WHERE type = 'table' AND name = '{}';
-        # """.format(table_name)
-        #
-        # result = cursor.execute(query)
-        #
-        # if not result:
         query = """
             CREATE TABLE IF NOT EXISTS {}(
              id INTEGER,
@@ -209,16 +186,41 @@ class Controller:
         cursor.execute(query)
         self.conn.commit()
 
+    def check_necessary_columns_existence(self,df):
+
+
+        query = ''
+        if 'bioguide_id' not in df:
+            query = 'ALTER TABLE {} ADD COLUMN bioguide_id TEXT; \n' .format(self.error_db_name)
+
+        if 'match' not in df:
+            query += 'ALTER TABLE {} ADD COLUMN match INTEGER; \n'.format(self.error_db_name)
+        if 'first_name' not in df:
+            query += 'ALTER TABLE {} ADD COLUMN first_name TEXT; \n'.format(self.error_db_name)
+        if 'last_name' not in df:
+            query += 'ALTER TABLE {} ADD COLUMN last_name TEXT; \n'.format(self.error_db_name)
+
+        if query != '':
+            cursor = self.conn.cursor()
+
+            cursor.executescript(query)
+
+        return self.retrieve_df_from_db(self.error_db_name)
+
+
     def refresh_all(self):
         new_correct_df = self.retrieve_df_from_db(self.correct_db_name)
         new_error_df = self.retrieve_df_from_db(self.error_db_name)
 
+        new_error_df = self.check_necessary_columns_existence(new_error_df)
+
         #  this can only apply for h_s dataset not for president.
         #  need to work on it to change it.
-        if 'bioguide_id' not in new_error_df:
-            new_error_df = self.converter.reset_erroneous_names(new_error_df, new_correct_df, 0.8)
-            new_error_df = new_error_df.drop(['index'], axis=1)
-            self.converter.upload_df_to_database(new_error_df, self.error_db_name)
+        # if 'bioguide_id' not in new_error_df:
+        #     new_error_df = self.converter.auto_correct_names(new_error_df, new_correct_df, 0.8)
+        #     new_error_df = new_error_df.drop(['index'], axis=1)
+        #     self.converter.upload_df_to_database(new_error_df, self.error_db_name)
+
         self.model.push_error_df(new_error_df)
         self.model.push_correct_df(new_correct_df)
         self.view.refresh_all()

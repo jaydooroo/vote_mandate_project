@@ -13,6 +13,16 @@ class h_s_converter:
     def upload_df_to_database(self, df: pd.DataFrame, name: str):
         df.to_sql(name, self.conn, if_exists='replace')
 
+    def retrieve_df_from_database(self, db_name):
+
+        query = """
+                SELECT *
+                FROM {};
+            """.format(db_name)
+
+        df = pd.read_sql_query(query, self.conn)
+        return df
+
     # convert only house and senate database.
     # add democratic and republican votes
     #
@@ -52,7 +62,7 @@ class h_s_converter:
 
         df = pd.read_sql_query(senate_query, self.conn)
 
-        self.interprete_names(df)
+        self.interpret_names(df)
 
         print(df.columns)
 
@@ -98,14 +108,12 @@ class h_s_converter:
                        modified_table, modified_table, modified_table, modified_table, modified_table, modified_table)
 
         cursor = self.conn.cursor()
-
         cursor.executescript(query)
+
+        df = self.retrieve_df_from_database(modified_table)
         return df
 
-
-
-
-    def interprete_names(self, df):
+    def interpret_names(self, df):
 
         for index, row in df.iterrows():
             name = row['candidate']
@@ -227,7 +235,6 @@ class h_s_converter:
 
         return result_df
 
-
     #  code that search people who changed parties (similar code with searching similar names)
     # running this function after correcting the names that are similar is recommended.
     def check_party_changes(self, df: pd.DataFrame):
@@ -270,9 +277,30 @@ class h_s_converter:
                 result_df = result_df.append(row)
         return result_df
 
+    def reflect_history(self, history_db_name):
+
+        query = """
+                   SELECT *
+                   FROM {}
+               """.format(history_db_name)
+
+        history_df = pd.read_sql_query(query, self.conn)
+        cursor = self.conn.cursor()
+
+        for index, row in history_df.iterrows():
+            query = """
+                                  UPDATE {}
+                                  SET first_name = '{}', last_name = '{}',candidate = '{}', bioguide_id = '{}', match = 1
+                                  WHERE rowid = {};
+                          """.format(row['origin_table'], row['first_name'], row['last_name'], row['full_name'],
+                                     row['bioguide_id'], int(row['id']))
+
+            cursor.execute(query)
+            self.conn.commit()
+
     # convert erroneous names found in the error_names DB to proper names using HSall dataset which has correct names and bio_id
     #
-    def reset_erroneous_names(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame,
+    def auto_correct_names(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame,
                               limit_similarity):
         # df error_names how should we compare and decide if they are the same name or not
         # 1. year -> calculate with congress number, 2. state, 3. first and last name -> set the similarity and decide accordingly
