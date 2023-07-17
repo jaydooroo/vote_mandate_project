@@ -63,7 +63,6 @@ class ultimate_converter:
         
         ALTER TABLE merged_nokken_pool ADD COLUMN dems_pres_vote_share;
         ALTER TABLE merged_nokken_pool ADD COLUMN gop_pres_vote_share;
-
         
      UPDATE merged_nokken_pool
 		SET dems_pres_vote_share = (
@@ -76,8 +75,8 @@ class ultimate_converter:
 		)as subquery
 		WHERE subquery.congress = merged_nokken_pool.congress or (subquery.congress + 1)= merged_nokken_pool.congress
 		),
-		gop_pres_vote_share = (
 		
+		gop_pres_vote_share = (
 		SELECT gop_pres_vote_share
 		FROM
 		(

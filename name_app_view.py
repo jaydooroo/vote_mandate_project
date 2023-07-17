@@ -278,16 +278,6 @@ class LabelFrame(ttk.LabelFrame):
         self.last_name_box = Entry(self)
         self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
 
-        # self.ll = Label(self, text="nickname")
-        # self.ll.grid(row=1, column=6, padx=2, pady=2)
-        # self.last_name_box = Entry(self)
-        # self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
-        #
-        # self.ll = Label(self, text="suffix ")
-        # self.ll.grid(row=1, column=6, padx=2, pady=2)
-        # self.last_name_box = Entry(self)
-        # self.last_name_box.grid(row=2, column=6, padx=2, pady=2)
-
         self.ful = Label(self, text="full_name")
         self.ful.grid(row=1, column=7, padx=2, pady=2)
         self.full_name_box = Entry(self)
@@ -314,25 +304,11 @@ class LabelFrame(ttk.LabelFrame):
         self.delete_history_bt = ttk.Button(self, text='delete current db history', command=self.delete_history)
         self.delete_history_bt.grid(row = 3, column = 6, padx=2, pady=2)
 
-        # self.autosave_l = Label(self, text="Upload_history_autosave")
-        # self.autosave_l.grid(row=2, column=5, pady=2, padx=2)
-        # self.autosave_on_img = PhotoImage(file="./icon/on.png")
-        # self.autosave_off_img = PhotoImage(file="./icon/off.png")
-        # self.autosave_bt = ttk.Button(self,
-        #                               image=self.autosave_on_img if self.controller.is_on_autosave else self.autosave_off_img,
-        #                               command=self.switch)
-        # self.autosave_bt.grid(row=3, column=5, padx= 2, pady= 2)
-
         self.chk_autosave = tk.IntVar()
 
         self.save_cbt = Checkbutton(self, text='save_history', variable=self.chk_autosave, onvalue=1, offvalue=0,
                                     command=self.autosave_history)
         self.save_cbt.grid(row=0, column=0, padx=2, pady=2)
-
-        # self.chk_reflect = tk.IntVar()
-        # self.reflect_cbt = Checkbutton(self, text='reflect_history', variable=self.chk_reflect, onvalue=1, offvalue=0,
-        #                                command=self.auto_reflect_history)
-        # self.reflect_cbt.grid(row = 0, column= 1, pady=2, padx=2 )
 
     def delete_history(self):
         self.controller.delete_history()
@@ -342,18 +318,13 @@ class LabelFrame(ttk.LabelFrame):
         self.controller.reflect_history()
         self.controller.refresh_all()
 
-        # if self.chk_reflect.get() == 1:
-        #     self.controller.is_on_reflect = True
-        # else:
-        #     self.controller.is_on_reflect = False
-
     def clear_history(self):
         self.controller.clear_history()
 
     def refresh(self):
         self.controller.refresh_all()
 
-    #     need to add nickname and suffix here.
+    # need to add nickname and suffix here.
 
     def upload_values(self):
         values_dict = {'id': self.id_box.get(), 'office': self.office_box.get(),
