@@ -41,7 +41,7 @@ class h_s_converter:
             original_table = 'president'
 
         # Generating democrat, republican, total votes of every election.
-        # I put special here - > shoul be modified later I think. special data set-> the out put query below also have special election data sperated from the normal one.
+        # I put special here - > shoul be modified later I think. special data set-> the out put query below also have special election data seperated from the normal one.
         #  Therefore, the query coming after blow query should be implemented using which election between special and normal
         # applied -> need to decide first which one we should apply.
         senate_query = """
@@ -113,6 +113,7 @@ class h_s_converter:
         df = self.retrieve_df_from_database(modified_table)
         return df
 
+    # interprete names to discern first and last name.
     def interpret_names(self, df):
 
         for index, row in df.iterrows():
@@ -236,7 +237,7 @@ class h_s_converter:
         return result_df
 
     #  code that search people who changed parties (similar code with searching similar names)
-    # running this function after correcting the names that are similar is recommended.
+    #  running this function after correcting the names that are similar is recommended.
     def check_party_changes(self, df: pd.DataFrame):
         dict_df = {}
 
@@ -277,6 +278,7 @@ class h_s_converter:
                 result_df = result_df.append(row)
         return result_df
 
+    # reflect history stored in database. (Name is indicated in history_db_name)
     def reflect_history(self, history_db_name):
 
         query = """

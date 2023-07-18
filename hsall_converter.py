@@ -13,6 +13,8 @@ class hsall_converter:
     def upload_df_to_database(self, df: pd.DataFrame, name: str):
         df.to_sql(name, self.conn, if_exists='replace')
 
+
+    # retrieve HSALL data from the database.
     def convert_HSall_database(self):
         query = """
           SELECT *
@@ -30,6 +32,7 @@ class hsall_converter:
 
         return df_hsall, error_df
 
+    # interpre names to discern first name and last name.
     def hsall_interprete_names(self, df):
 
         error_df = pd.DataFrame()

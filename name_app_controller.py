@@ -76,7 +76,7 @@ class Controller:
     def update_names(self, values):
         self.view.update_names(values)
 
-    # TODO: need to assign suffix and nickname as well.
+
     def upload_values(self, values_dict):
         id = values_dict['id']
         first_name = values_dict['first_name']

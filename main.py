@@ -84,6 +84,7 @@ h_s_converter.reflect_history('names_modified_history')
 # controller.set_view(view)
 # controller.run()
 
+# converter that is used to merge and add additional variables
 ultimate_converter = ult.ultimate_converter(conn)
 
 ultimate_converter.merge_nokken_poole_with_h_s()

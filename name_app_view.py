@@ -235,7 +235,7 @@ class LabelFrame(ttk.LabelFrame):
 
     def __init__(self, container, controller: Controller):
         super().__init__(container)
-        # controaller saved
+        # controller saved
         self.original_val = None
         self.controller = controller
         # initializing widgets

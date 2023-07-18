@@ -19,6 +19,7 @@ class ultimate_converter:
 
     # merge hsall db which has nokken pool data with house and senate data
     # join is used to merge. join through bioguide or canadidate name, state and congress.
+    # Join with only house and senate data.
     def merge_nokken_poole_with_h_s(self):
         query = """
             DROP TABLE IF EXISTS combined_vote_result;
@@ -58,6 +59,7 @@ class ultimate_converter:
         cursor.executescript(query)
 
     # add presidential election vote share for democratic and republican to merged dataset(merged_nokken_pool)
+    # the congress year and the next congress year(total 2 congress) belong to one presidential election(Because president term is 4 years)
     def add_pres_vote_share(self):
         query = """
         
@@ -156,8 +158,8 @@ class ultimate_converter:
         self.upload_df_to_database(df, 'merged_nokken_pool')
 
     # add recent vote share for senate as well as avg vote share.
-    # recent vote share means that the most recent voteshare for senator election in the same state.
-    # It just use row that has lowest subterm varaible in the same state to calculate it.
+    # recent vote share means that the most recent vote share for senator election in the same state.
+    # It just uses row that has lowest subterm variable in the same state to calculate it.
 
     # avg senate vote share is the average vote share of the according year and state.
     def add_recent_avg_senate_vote_share(self):
@@ -258,7 +260,7 @@ class ultimate_converter:
         cursor = self.conn.cursor()
         cursor.executescript(query)
 
-
+    # Drop all the rows that does not have vote share and save it to the new table "merged_nokken_poole_1976_2020"
     def create_result_table(self):
 
         query = """
