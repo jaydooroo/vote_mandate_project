@@ -308,3 +308,44 @@ The methods in the ultimate_converter class perform complex operations, so make 
 
 ---
 
+## Graphic User Interface for manual name correction (UI)
+
+This program is only graphic interface in this program which is used to manually assign names from hsall to the names in other dataset. 
+
+This program is used when auto_correction in converter is not enough to match all the names in the dataset. 
+
+This program consist of controller, model and view (name_app_view.py, name_app_model.py, name_app_controller.py)
+
+![img.png](img.png)
+
+
+correct_db_name : name of the table in the sqlite database that has correct names and bioguide id -> should be hsall data.
+
+error_db_name: name of the table in the sqlite database that has names that should be compared with correct_db_name ->senate, house, president data.
+
+db location: where the sqlite database exists.
+
+first window that has a long list of columns is to show the list of unmatched names from error_db_name table.
+
+IF you clicked the one of row in the list then it shows the list of suggested list of names that comes from hsall dataset. 
+
+In the editor section, it shows all the necessary information of the rows that are clicked.
+
+if you cliked the one of the rows in the suggestion list, the name boxes and bioguide_id box are updated accordingly in the editor section. 
+
+upload button: it updates the error_db_name table in the database according to the information in the boxes in editor(it updates names and bioguide_id usually)
+
+refresh button: it retrieves the data from the db again and shows the list of names in the first windows.
+
+
+save history check button: if you upload the modified information and changed the db when save_history button is cliked, it saves all the history of modification in the database so that it can be used later. 
+
+clear all history button: it clears all the history in the history table in the database
+
+reflect history button: it reflects all the past modification history to current one so that you do not have to upload everythin again. 
+
+delete current db history button: it deleted only history of current "error_db_name" table (not all the history)
+
+![img_2.png](img_2.png)
+
+  
