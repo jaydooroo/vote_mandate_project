@@ -23,9 +23,7 @@ class h_s_converter:
         df = pd.read_sql_query(query, self.conn)
         return df
 
-    # convert only house and senate database.
-    # add democratic and republican votes
-    #
+    # Convert the House and Senate databases, adding Democratic and Republican votes(respective districts and states).
     def convert_database(self, office_type):
         if office_type.upper() == 'H':
             original_table = 'from1976to2020_house'
@@ -41,7 +39,7 @@ class h_s_converter:
             original_table = 'president'
 
         # Generating democrat, republican, total votes of every election.
-        # I put special here - > shoul be modified later I think. special data set-> the out put query below also have special election data seperated from the normal one.
+        # I put special here - > shoul be modified later I think. special data set-> the output query below also have special election data seperated from the normal one.
         #  Therefore, the query coming after blow query should be implemented using which election between special and normal
         # applied -> need to decide first which one we should apply.
         senate_query = """
@@ -113,7 +111,7 @@ class h_s_converter:
         df = self.retrieve_df_from_database(modified_table)
         return df
 
-    # interprete names to discern first and last name.
+    # interprete names to distinguish first and last name.
     def interpret_names(self, df):
 
         for index, row in df.iterrows():
@@ -168,8 +166,8 @@ class h_s_converter:
 
         return df
 
-    # retrieve erroneous names (such as similar names) and return dataframe that has all the rows that has erroneous names.
-    # we can modify the level of similarity using limit_similarity argument. (1 is equal 0 is different completely)
+    # retrieve names that are same person but has different names in different election.
+    # we can modify the level of similarity using limit_similarity argument. (1 means exactly same 0 means total difference)
     def check_names(self, df, limit_similarity):
         # dictionary: key is year + state_po + party string, value is index
         dict_df = {}
@@ -237,7 +235,7 @@ class h_s_converter:
         return result_df
 
     #  code that search people who changed parties (similar code with searching similar names)
-    #  running this function after correcting the names that are similar is recommended.
+    #  running this function after matching the names that are similar is recommended.
     def check_party_changes(self, df: pd.DataFrame):
         dict_df = {}
 
@@ -279,7 +277,7 @@ class h_s_converter:
         return result_df
 
     # reflect history stored in database. (Name is indicated in history_db_name)
-    def reflect_history(self, history_db_name):
+    def reflect_name_correction_history(self, history_db_name):
 
         query = """
                    SELECT *
@@ -301,7 +299,11 @@ class h_s_converter:
             self.conn.commit()
 
     # convert erroneous names found in the error_names DB to proper names using HSall dataset which has correct names and bio_id
-    #
+    # match names that does not match with names in HSALL dataset using similarity.
+    # if the name is similar enough (based on limit_similarity, if the similarrity is larger than limit similarity),
+    # it changes the names to names in HSALL dataset.
+    # INPUT: df_error_names -> dataframe that has names to be modified, df_correct_names -> dataframe that has correct names(should be hsall dataset)
+    # limit_similarity: similarity where we want to automatically match the names if the similarity of the names exceed.
     def auto_correct_names(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame,
                               limit_similarity):
         # df error_names how should we compare and decide if they are the same name or not
@@ -328,7 +330,7 @@ class h_s_converter:
                 district = 0 if row['district'] == 'statewide' else row['district']
 
                 # there is a case there is 0 district which mean there is only one district in the state.
-                # in this case Hsall dataset takes that district to number 1 district not 0
+                # in this case Hsall dataset takes that district as number 1 district not 0
                 # we are modifying in here to match those numbers.
                 if office == 'House' and district == 0:
                     district = 1

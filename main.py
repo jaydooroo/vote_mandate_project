@@ -13,14 +13,14 @@ from name_app_controller import Controller
 conn = sqlite3.connect('total_info.db')
 
 
-# house and senate db converter
+# house and senate db converter (adding democrat and republican votes to the respective districts and states).
 h_s_converter = h_s.h_s_converter(conn)
 
 # hsall converter. HSALL date is where nominate data exists
 hsall_converter = hsall.hsall_converter(conn)
 
 # Rtrieve hsall from the database.
-df_HSall, df_error = hsall_converter.convert_HSall_database()
+df_HSall = hsall_converter.convert_HSall_database()
 
 # retrieve senate data and check incorrect names as well as party changes history.
 df_senate = h_s_converter.convert_database('s')
@@ -74,15 +74,15 @@ p_df = p_converter.auto_correct_names(p_df, df_HSall, 0.8)
 # upload dataframe to the database.
 p_converter.upload_df_to_database(p_df, "name_modified_president")
 
-# automatically reflect history that was created before using program below.
-h_s_converter.reflect_history('names_modified_history')
+# automatically reflect name correction history that was created before using program below.
+h_s_converter.reflect_name_correction_history('names_modified_history')
 
 
 # user interface that is used to assign bioguide_id or correct names manually.
-# controller = Controller('total_info.db', 'name_modified_house', 'name_modified_HSall')
-# view = View(controller)
-# controller.set_view(view)
-# controller.run()
+controller = Controller('total_info.db', 'name_modified_house', 'name_modified_HSall')
+view = View(controller)
+controller.set_view(view)
+controller.run()
 
 # converter that is used to merge and add additional variables
 ultimate_converter = ult.ultimate_converter(conn)

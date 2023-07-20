@@ -30,7 +30,7 @@ class hsall_converter:
             self.upload_df_to_database(error_df, 'HSall_undefined_names')
         self.upload_df_to_database(df_hsall, 'name_modified_HSall')
 
-        return df_hsall, error_df
+        return df_hsall
 
     # interpre names to discern first name and last name.
     def hsall_interprete_names(self, df):

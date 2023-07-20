@@ -143,7 +143,7 @@ class president_converter:
         df_error_names = df_error_names.replace({np.nan: None})
         return df_error_names
 
-    # Interprete name and set first and last name according to the name.
+    # Interprete names and set first and last name according to the names.
     def interpret_names(self, df):
 
         error_df = pd.DataFrame()
