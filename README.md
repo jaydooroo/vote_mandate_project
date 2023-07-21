@@ -2,17 +2,17 @@
 
 ## Description
 
-The main purpose of this python program is to generate variables that are used for election and politician types research.
+The main purpose of the vote_mandate_project is to generate variables that are used for election and politician types research. The program uses Python to process data and SQLite to store and manage the datasets.
 
-Variables that this program generates are described below
+The program generates the following variables:
  
 
 ### nokken_poole_dim1
-- **Description**: Nokken-Poole First dimension estimate but absoulte value.
+- **Description**: Nokken-Poole First dimension estimate.
 
 ---
 ### abs_nokken_poole_dim1
-- **Description**: Nokken-Poole First dimension estimate but absoulte value.
+- **Description**: Nokken-Poole First dimension estimate as an absolute value.
 
 ---
 ### vote_share
@@ -82,18 +82,33 @@ The main.py file instantiate and calls the classes and runs in the proper order.
 ---
 ## UPLOAD (politic_info_upload.py file).
         
-The main purpose of this part is to upload all the csv file into the sqlite database which is total_info.db
+The Upload part is responsible for uploading the required CSV files into an SQLite database named total_info.db. This database will serve as the central repository for all the election-related data. The CSV files that are uploaded include:
 
-The csv file it is uploading : '1976-2020-senate.csv', '1976-2020-house.csv','1976-2020-president.csv','HSall_members.csv'
+'1976-2020-senate.csv': Contains data on Senate elections from 1976 to 2020.
 
-The name of each table that is uploaded: 'from1976to2020_senate','from1976to2020_house','from1976to2020_president','HSall_members'
+'1976-2020-house.csv': Contains data on House elections from 1976 to 2020.
+
+'1976-2020-president.csv': Contains data on Presidential elections from 1976 to 2020.
+
+'HSall_members.csv': Contains data on all members of the House of Representatives and the Senate.
+
+
+Each CSV file corresponds to a specific table within the database:
+
+Table 'from1976to2020_senate': Holds data on Senate elections.
+
+Table 'from1976to2020_house': Stores data on House elections.
+
+Table 'from1976to2020_president': Stores data on Presidential elections.
+
+Table 'HSall_members': Contains information on all House and Senate members.
+
+The process of uploading involves reading the data from the CSV files and creating the respective tables in the SQLite database. This step is crucial as it sets the foundation for data processing and analysis in the later stages of the project.
 
 ---
 ## CONVERTER (h_s_converter, hsall_converter,president_converter).
         
-The main purpose of this converter python files is to convert all the data in the 
-total_info.db('from1976to2020_senate','from1976to2020_house','from1976to2020_president','HSall_members')
-to be compatible to merge.
+The Converter part consists of multiple Python scripts designed to prepare and manipulate the data from the uploaded CSV files for compatibility and merging. Each converter script serves a specific purpose:
 
 Frist, h_s_converter convert 
         
@@ -310,41 +325,68 @@ The methods in the ultimate_converter class perform complex operations, so make 
 
 ## Graphic User Interface for manual name correction (UI)
 
-This program is only graphic interface in this program which is used to manually assign names from hsall to the names in other dataset. 
+The UI part of the project provides a user-friendly graphical interface for manually assigning names from the HSall dataset to the names in other datasets. It is particularly useful when automatic name correction in the converter is not sufficient to match all names in the dataset.
 
-This program is used when auto_correction in converter is not enough to match all the names in the dataset. 
 
-This program consist of controller, model and view (name_app_view.py, name_app_model.py, name_app_controller.py)
+The UI consists of three main components:
+
+- name_app_view.py: This component handles the graphical layout and display of the UI elements, including lists of unmatched names and suggested names.
+
+- name_app_model.py: This component deals with data manipulation and processing. It manages the retrieval and storage of data and handles any modifications made during the name correction process.
+
+- name_app_controller.py: This component acts as the bridge between the view and the model. It manages the interactions between the user interface and the underlying data processing functionalities. For example, when a user selects a name from the unmatched list, the controller can fetch and display the corresponding suggested names for manual correction.
+
+The UI allows users to manually assign correct names and bioguide IDs from the HSall dataset to the unmatched names in the other datasets. Users can upload the modified information back to the database and save the history of modifications for future reference.
+
+
+---
+## User's Guide for UI
+
+The UI component of the vote_mandate_project provides a graphical user interface that allows users to manually assign correct names and bioguide IDs from the HSall dataset to the unmatched names in the other datasets (senate, house, president). This guide explains how to use the UI and its functionalities effectively.
+
 
 ![img.png](img.png)
 
 
-correct_db_name : name of the table in the sqlite database that has correct names and bioguide id -> should be hsall data.
+### Database Info Section:
 
-error_db_name: name of the table in the sqlite database that has names that should be compared with correct_db_name ->senate, house, president data.
+correct_db_name : Enter the name of the table in the SQLite database that contains the correct names and bioguide IDs. Typically, this table should be from the HSall dataset.
 
-db location: where the sqlite database exists.
+error_db_name: Enter the name of the table in the SQLite database that contains the names to be compared with the correct names from the HSall dataset. This table should contain data from Senate, House, or Presidential elections.
 
-first window that has a long list of columns is to show the list of unmatched names from error_db_name table.
+db location:  Provide the path or location where the SQLite database exists on your system.
 
-IF you clicked the one of row in the list then it shows the list of suggested list of names that comes from hsall dataset. 
+### Main Window:
+The main window displays a list of unmatched names from the "Error Database Name" table. If you click on any row in the list, the window will show a list of suggested names from the HSall dataset that could potentially match the unmatched name.
 
-In the editor section, it shows all the necessary information of the rows that are clicked.
+### Editor Section:
+The editor section displays all the necessary information of the row that is currently selected (clicked) in the main window. It includes information about the candidate, state, and other relevant details.
 
-if you cliked the one of the rows in the suggestion list, the name boxes and bioguide_id box are updated accordingly in the editor section. 
+### Suggested Names:
+If you click on a row in the main window, a list of suggested names from the HSall dataset will appear. This list can help you identify and assign the correct name and bioguide ID for the unmatched name. If you click on a row in the suggestion window, it automatically updates the name and bio_id accordingly. 
 
-upload button: it updates the error_db_name table in the database according to the information in the boxes in editor(it updates names and bioguide_id usually)
+### Updating Names and Bioguide IDs:
+If you click on a row in the main window and list of suggested names, the name boxes and bioguide_id box in the editor section will be updated accordingly. You can use this feature to manually assign the correct information to the unmatched name.
 
-refresh button: it retrieves the data from the db again and shows the list of names in the first windows.
+### Upload Button:
+The "Upload" button allows you to update the table that has names(error_db_name) to be fixed in the database with the modified information provided in the editor section. Typically, this button is used after manually correcting names and bioguide IDs.
 
+### Refresh Button:
+The "Refresh" button retrieves the data from the database again and updates the list of unmatched names in the main window. Use this button if you want to see the latest data from the database.(after 'upload', it is automatically run)
 
-save history check button: if you upload the modified information and changed the db when save_history button is cliked, it saves all the history of modification in the database so that it can be used later. 
+### Save History Check Button:
+When you upload the modified information and click the "Save History" button, it saves all the history of modifications in the database. This feature can be helpful for keeping track of changes and for reference in the future.
 
-clear all history button: it clears all the history in the history table in the database
+### Clear All History Button:
+The "Clear All History" button clears all the history stored in the history table in the database. Use this button if you want to start fresh without any previous modification records.
 
-reflect history button: it reflects all the past modification history to current one so that you do not have to upload everythin again. 
+### Reflect History Button:
+The "Reflect History" button reflects all the past modification history to the current one. This means it will load all the changes and apply them. This can save you time if you need to make further modifications based on previous corrections.
 
-delete current db history button: it deleted only history of current "error_db_name" table (not all the history)
+### Delete Current DB History Button:
+The "Delete Current DB History" button deletes only the modification history of the current "Error Database Name" table. It does not affect the history of other tables in the database.
+
+This UI provides an efficient and user-friendly way to handle name corrections and bioguide ID assignments manually. Follow the instructions above to make use of the features effectively. If you have any questions or encounter any issues, refer to this guide or consult the documentation for the vote_mandate_project.
 
 ![img_2.png](img_2.png)
 

@@ -423,7 +423,7 @@ class DBFrame(ttk.LabelFrame):
     def __init__(self, container, controller: Controller):
         super().__init__(container)
 
-        # self['text'] = 'Database'
+        self['text'] = 'Database Info'
         self.controller = controller
         self.pack(padx=40, pady=40)
 
