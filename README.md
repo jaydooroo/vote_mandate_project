@@ -267,29 +267,29 @@ The ultimate_converter class is designed to perform various data manipulation an
 
 - **Features**
 
-'upload_df_to_database(df: pd.DataFrame, name: str)':
+**'upload_df_to_database(df: pd.DataFrame, name: str)':**
     
-    Uploads a DataFrame to the SQLite database with the given name. If the table already exists, it will be replaced.
+Uploads a DataFrame to the SQLite database with the given name. If the table already exists, it will be replaced.
 
-'merge_nokken_poole_with_h_s()':
+**'merge_nokken_poole_with_h_s()':**
 
-    Merges the HSALL database with the House and Senate databases using a LEFT JOIN operation based on common fields such as bioguide_id or candidate name, state, congress, and chamber. The result is stored in a new table named "merged_nokken_pool".
+Merges the HSALL database with the House and Senate databases using a LEFT JOIN operation based on common fields such as bioguide_id or candidate name, state, congress, and chamber. The result is stored in a new table named "merged_nokken_pool".
 
-'add_pres_vote_share()':
+**'add_pres_vote_share()':**
 
-    Adds presidential election vote share for Democrats and Republicans to the "merged_nokken_pool" table. It calculates the vote share for the most recent presidential election for each congress.
+Adds presidential election vote share for Democrats and Republicans to the "merged_nokken_pool" table. It calculates the vote share for the most recent presidential election for each congress.
 
-'add_subterm_senate()':
+**'add_subterm_senate()':**
 
-    Adds a "subterm" column to the "merged_nokken_pool" table. The "subterm" indicates if the senators are serving their first, second, or third term since they have a 6-year term. It calculates the subterm for each senator based on their vote share data.
+Adds a "subterm" column to the "merged_nokken_pool" table. The "subterm" indicates if the senators are serving their first, second, or third term since they have a 6-year term. It calculates the subterm for each senator based on their vote share data.
 
-'add_recent_avg_senate_vote_share()':
+**'add_recent_avg_senate_vote_share()':**
 
-    Adds recent and average vote share for Senate candidates to the "merged_nokken_pool" table. The recent vote share refers to the most recent vote share for senatorial elections in the same state. The average vote share is the average vote share for Senate candidates for each year and state.
+Adds recent and average vote share for Senate candidates to the "merged_nokken_pool" table. The recent vote share refers to the most recent vote share for senatorial elections in the same state. The average vote share is the average vote share for Senate candidates for each year and state.
 
-'create_result_table()':
+**'create_result_table()':**
     
-    Drops all rows that do not have vote share data and saves the modified dataset to a new table named "merged_nokken_poole_1976_2020". This table will contain the final, comprehensive dataset with vote share information for different candidates in various elections.
+Drops all rows that do not have vote share data and saves the modified dataset to a new table named "merged_nokken_poole_1976_2020". This table will contain the final, comprehensive dataset with vote share information for different candidates in various elections.
 
 - **Example**
 
@@ -346,6 +346,7 @@ The UI component of the vote_mandate_project provides a graphical user interface
 
 
 ![img.png](img.png)
+![img_2.png](img_2.png)
 
 
 ### Database Info Section:
@@ -388,6 +389,5 @@ The "Delete Current DB History" button deletes only the modification history of 
 
 This UI provides an efficient and user-friendly way to handle name corrections and bioguide ID assignments manually. Follow the instructions above to make use of the features effectively. If you have any questions or encounter any issues, refer to this guide or consult the documentation for the vote_mandate_project.
 
-![img_2.png](img_2.png)
 
   
