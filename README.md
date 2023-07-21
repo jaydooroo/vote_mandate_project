@@ -178,18 +178,18 @@ The hsall_converter class is designed to convert and interpret data from the "HS
 
 The script provides the following features:
 
-'upload_df_to_database(df: pd.DataFrame, name: str)':
+**'upload_df_to_database(df: pd.DataFrame, name: str)':**
 
-    Uploads a DataFrame to the SQLite database with the given name. 
+Uploads a DataFrame to the SQLite database with the given name. 
     If the table already exists, it will be replaced.
 
-'convert_HSall_database()':
+**'convert_HSall_database()':**
 
-    Retrieves data from the "HSall_members" table and interprets names to discern first name and last name.
-    The modified data is stored in the "name_modified_HSall" table. 
-    Any names that cannot be interpreted are stored in the "HSall_undefined_names" table.
+Retrieves data from the "HSall_members" table and interprets names to discern first name and last name.
+The modified data is stored in the "name_modified_HSall" table. 
+Any names that cannot be interpreted are stored in the "HSall_undefined_names" table.
 
-    Returns: The modified DataFrame containing the interpreted names.
+Returns: The modified DataFrame containing the interpreted names.
 
 - **Usage**
 
@@ -221,25 +221,25 @@ The president_converter class is designed to convert and interpret data from a d
 
 - **Features**
 
-'upload_df_to_database(df: pd.DataFrame, name: str)':
+**'upload_df_to_database(df: pd.DataFrame, name: str)':**
     
-    Uploads a DataFrame to the SQLite database with the given name. If the table already exists, it will be replaced.
+Uploads a DataFrame to the SQLite database with the given name. If the table already exists, it will be replaced.
 
-'retrieve_df_from_db(table_name: str)':
+**'retrieve_df_from_db(table_name: str)':**
 
-    Retrieves a DataFrame from the SQLite database based on the provided table name.
+Retrieves a DataFrame from the SQLite database based on the provided table name.
 
-'convert_database()':
+**'convert_database()':**
 
-    Performs various database operations to create a modified table named "name_modified_president" containing aggregated election data for major candidates (Democrats and Republicans) for each year.
+Performs various database operations to create a modified table named "name_modified_president" containing aggregated election data for major candidates (Democrats and Republicans) for each year.
 
-'auto_correct_names(df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame, limit_similarity: float)':
+**'auto_correct_names(df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame, limit_similarity: float)':**
 
-    Automatically assigns names from the HSALL database to the names in the "name_modified_president" database using similarity. The limit_similarity parameter determines the minimum similarity required for the auto-correction.
+Automatically assigns names from the HSALL database to the names in the "name_modified_president" database using similarity. The limit_similarity parameter determines the minimum similarity required for the auto-correction.
 
-'interpret_names(df: pd.DataFrame)':
+**'interpret_names(df: pd.DataFrame)':**
 
-    Interprets names and sets first and last names according to the names in the DataFrame.
+Interpret names and sets first and last names according to the names in the DataFrame.
 
 - **Example**
 
