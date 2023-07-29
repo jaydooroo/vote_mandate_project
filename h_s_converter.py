@@ -43,8 +43,10 @@ class h_s_converter:
         #  Therefore, the query coming after blow query should be implemented using which election between special and normal
         # applied -> need to decide first which one we should apply.
         senate_query = """
-            SELECT year, state, state_po, office, district,special, stage, candidate, {}, candidatevotes, CAST(MAX(totalvotes) AS INTEGER) AS totalvotes,
-            CAST(MAX(democratvotes) AS INTEGER) AS democratvotes, CAST(MAX(republicanvotes) AS INTEGER) AS republicanvotes
+            SELECT year, state, state_po, office, district,special, stage, candidate, {}, candidatevotes, 
+            CAST(( CASE WHEN MAX(totalvotes) IS NULL THEN 0 ELSE MAX(totalvotes) END ) AS INTEGER) AS totalvotes,
+            CAST( ( CASE WHEN MAX(democratvotes) IS NULL THEN 0 ELSE MAX(democratvotes) END ) AS INTEGER) AS democratvotes, 
+            CAST((CASE WHEN MAX(republicanvotes) IS NULL THEN 0 ELSE MAX(republicanvotes) END) AS INTEGER) AS republicanvotes
     		FROM (
     			    SELECT *, CAST((CASE WHEN {} = 'DEMOCRAT' THEN candidatevotes END) AS INTEGER) AS democratvotes,
     				CAST((CASE WHEN {} = 'REPUBLICAN' THEN candidatevotes END) AS INTEGER) AS republicanvotes

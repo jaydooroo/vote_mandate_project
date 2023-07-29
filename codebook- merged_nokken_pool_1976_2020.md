@@ -1,6 +1,7 @@
 ﻿# Codebook for merged_nokken_poole
 
 ## Variables
+
 The variables are listed as they appear in the data file.
 
 ### congress
@@ -105,7 +106,7 @@ The variables are listed as they appear in the data file.
 
 ### dems_vote_share_state
 
-- **Description**: It represents the total Democratic party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Description**: It represents the total Democratic party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes). senate and house has their own seperate value.(calculated by the office seperately)
   - **Note**:
     There are cases where the election has only one candidate. In this case, there is no election, and the winner is considered to have just one vote. This only has a very little effect on the total state votes, which might distort the actual public favor on the parties.
 
@@ -113,7 +114,7 @@ The variables are listed as they appear in the data file.
 
 ### gop_vote_share_state
 
-- **Description**: It represents the total Republican party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Description**: It represents the total Republican party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).senate and house has their own seperate value.(calculated by the office seperately)
   - **Note**:
     There are cases where the election has only one candidate. In this case, there is no election, and the winner is considered to have just one vote. This only has a very little effect on the total state votes, which might distort the actual public favor on the parties.
 
@@ -122,14 +123,14 @@ The variables are listed as they appear in the data file.
 ### recent_dems_vote_share_senate
 
 - **Description**: It represents the Democrat vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
-- based on the instruction 5: d.	Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value. 
+- based on the instruction 5: d. Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value.
 
 ---
 
 ### recent_gop_vote_share_senate
 
 - **Description**: It represents the Republican vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
-- based on the instruction 5: d.	Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value.
+- based on the instruction 5: d. Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value.
 
 ---
 
@@ -150,35 +151,35 @@ The variables are listed as they appear in the data file.
 ### dems_avg_vote_share_senate
 
 - **Description**: It represents the average Democrat vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value).
-- based on the instruction 5: 	Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
+- based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
 
 ### gop_avg_vote_share_senate
 
 - **Description**: It represents the average Republican vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value)
-- based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year. 
+- based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
 
 ### dems_pres_vote_share
 
 - **Description**: democrat vote shares of the most recent presidential election.
-- based on the instruction 6: e.	This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4) 
+- based on the instruction 6: e. This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4)
 
 ---
 
 ### gop_pres_vote_share
 
 - **Description**: republican vote shares of the most recent presidential election.
-- based on the instruction 6: e.	This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4) 
+- based on the instruction 6: e. This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4)
 
 ---
 
 ### subterm
 
 - **Description**: subterm for senator
-- based on the instruction 5: a.	Create “subterm” variable 1,2,3 for election year (1), subsequent year (2), sub-subsequent year (3); vote share will be present in subterm 1 but missing in subterms 2 and 3
+- based on the instruction 5: a. Create “subterm” variable 1,2,3 for election year (1), subsequent year (2), sub-subsequent year (3); vote share will be present in subterm 1 but missing in subterms 2 and 3
 
 ---
 

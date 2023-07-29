@@ -24,14 +24,14 @@ class ultimate_converter:
         query = """
             DROP TABLE IF EXISTS combined_vote_result;
 
-             CREATE TABLE combined_vote_result AS    
+            CREATE TABLE combined_vote_result AS    
 	        SELECT year,CAST(congress as INTEGER) as congress, state, state_po, bioguide_id, candidate,
 	        CAST((CASE WHEN office = 'US SENATE' THEN 'Senate' WHEN office = 'US HOUSE' THEN 'House' END) as TEXT) as chamber,
 	        district, special, stage, party, CAST((CAST(candidatevotes as REAL) / totalvotes)as REAL )as vote_share, 
-	        CAST((CASE WHEN democratvotes IS NOT NULL THEN democratvotes/totalvotes END ) as REAL)as dems_vote_share_district, 
-	        CAST((CASE WHEN republicanvotes IS NOT NULL THEN republicanvotes/totalvotes END) as REAL ) as gop_vote_share_district,
-	        CAST((CASE WHEN dems_total_votes_state IS NOT NULL THEN dems_total_votes_state/total_votes_state END) as REAL) as dems_vote_share_state,
-	        CAST((CASE WHEN gop_total_votes_state IS NOT NULL THEN gop_total_votes_state/total_votes_state END) as REAL) as gop_vote_share_state
+	        CAST((CASE WHEN democratvotes IS NOT NULL THEN CAST(democratvotes AS REAL)/totalvotes END ) as REAL)as dems_vote_share_district, 
+	        CAST((CASE WHEN republicanvotes IS NOT NULL THEN CAST(republicanvotes AS REAL)/totalvotes END) as REAL ) as gop_vote_share_district,
+	        CAST((CASE WHEN dems_total_votes_state IS NOT NULL THEN CAST (dems_total_votes_state AS REAL)/total_votes_state END) as REAL) as dems_vote_share_state,
+	        CAST((CASE WHEN gop_total_votes_state IS NOT NULL THEN CAST (gop_total_votes_state AS REAL)/total_votes_state END) as REAL) as gop_vote_share_state
 	        FROM 
             (SELECT * 
             FROM name_modified_house
@@ -44,14 +44,15 @@ class ultimate_converter:
 
             CREATE TABLE merged_nokken_pool AS
             SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, CAST(nokken.district_code as INTEGER) as district, nokken.state_abbrev,
-            nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, abs(nokken.nokken_poole_dim1) as abs_nokken_poole_dim1, 
+            nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, 
+			CASE WHEN nokken.party_code = 100 THEN (-1 * nokken.nokken_poole_dim1) 
+			WHEN nokken.party_code = 200 THEN nokken.nokken_poole_dim1 ELSE NULL END as modified_nokken_poole_dim1, 
             CAST(vote.special as INTEGER) as special, vote.stage, vote.party, vote.vote_share, vote.dems_vote_share_district, vote.gop_vote_share_district, 
             vote.dems_vote_share_state, vote.gop_vote_share_state
             FROM name_modified_HSall nokken
             LEFT JOIN combined_vote_result vote
             ON (nokken.bioguide_id = vote.bioguide_id OR nokken.bioname = vote.candidate) AND nokken.congress = vote.congress AND nokken.chamber = vote.chamber 
             AND nokken.state_abbrev = vote.state_po;
-
         """
 
         cursor = self.conn.cursor()
@@ -187,7 +188,7 @@ class ultimate_converter:
 
         CREATE TABLE temp_merged_nokken_pool AS 
         SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, nokken.district, nokken.state_abbrev,
-        nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, nokken.abs_nokken_poole_dim1,
+        nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, nokken.modified_nokken_poole_dim1,
         nokken.special, nokken.stage, nokken.party, nokken.vote_share, 
         nokken.dems_vote_share_district, nokken.gop_vote_share_district, 
         nokken.dems_vote_share_state, nokken.gop_vote_share_state,
@@ -212,10 +213,8 @@ class ultimate_converter:
 	    HAVING min(subterm)
 	    ) as subquery
 	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
-	
 	    ),
 	    recent_gop_vote_share_senate = (
-	
 		SELECT subquery.recent_gop_vote_share_senate
 	    FROM (
 	    SELECT congress, chamber, state_abbrev, bioname,recent_gop_vote_share_senate, subterm
@@ -224,9 +223,28 @@ class ultimate_converter:
 	    HAVING min(subterm)
 	    ) as subquery
 	    WHERE subquery.state_abbrev = merged_nokken_pool.state_abbrev and subquery.congress = merged_nokken_pool.congress
-	    );
-	    
-	    
+	    ),
+	    dems_avg_vote_share_senate = (
+	    SELECT dems_avg_vote_share_senate
+	    FROM (
+	    SELECT congress, chamber, state_abbrev, bioname, dems_avg_vote_share_senate
+	    FROM merged_nokken_pool
+	    WHERE chamber = 'Senate' 
+	    GROUP BY congress, state_abbrev
+	    )AS subquery
+	    WHERE subquery.congress = merged_nokken_pool.congress AND subquery.state_abbrev = merged_nokken_pool.state_abbrev
+        ),
+
+        gop_avg_vote_share_senate = (
+	    SELECT gop_avg_vote_share_senate
+	    FROM (
+	    SELECT congress, chamber, state_abbrev, bioname, gop_avg_vote_share_senate
+	    FROM merged_nokken_pool
+	    WHERE chamber = 'Senate' 
+	    GROUP BY congress, state_abbrev
+	    )AS subquery
+	    WHERE subquery.congress = merged_nokken_pool.congress AND subquery.state_abbrev = merged_nokken_pool.state_abbrev
+        );
 
         ALTER TABLE merged_nokken_pool ADD COLUMN recent_dems_vote_share_house REAL;
 
@@ -260,6 +278,32 @@ class ultimate_converter:
         cursor = self.conn.cursor()
         cursor.executescript(query)
 
+    # adding fellow senate vote share
+    # a variable that equals the party vote share in the other senate race from the same state.
+    def add_fellow_senate_vote_share(self):
+
+        query = """
+        ALTER TABLE merged_nokken_pool ADD COLUMN fellow_senate_vote_share;
+        
+        UPDATE merged_nokken_pool
+        SET fellow_senate_vote_share = (
+	    SELECT CASE WHEN merged_nokken_pool.party = 'DEMOCRAT' THEN subquery.dems_vote_share_district 
+	    WHEN merged_nokken_pool.party = 'REPUBLICAN' THEN subquery.gop_vote_share_district
+	    ELSE NULL END
+	    FROM(
+	    SELECT congress, state_icpsr, bioname, dems_vote_share_district, gop_vote_share_district
+	    FROM merged_nokken_pool
+	    WHERE chamber = 'Senate' AND party is not null
+		GROUP BY congress, state_icpsr, bioname
+	    )AS subquery
+	    WHERE subquery.congress = merged_nokken_pool.congress AND subquery.state_icpsr = merged_nokken_pool.state_icpsr AND subquery.bioname != merged_nokken_pool.bioname 
+	    AND merged_nokken_pool.chamber = 'Senate'
+	    )
+        """
+
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
     # Drop all the rows that does not have vote share and save it to the new table "merged_nokken_poole_1976_2020"
     def create_result_table(self):
 
@@ -267,12 +311,12 @@ class ultimate_converter:
         DROP TABLE IF EXiSTS merged_nokken_poole_1976_2020;
         
         CREATE TABLE merged_nokken_poole_1976_2020 AS
-        SELECT congress, chamber, district, state_abbrev, bioname, bioguide_id, nokken_poole_dim1,abs_nokken_poole_dim1,
+        SELECT congress, chamber, district, state_abbrev, bioname, bioguide_id, nokken_poole_dim1,modified_nokken_poole_dim1,
         special, stage, party, vote_share, dems_vote_share_district, gop_vote_share_district, dems_vote_share_state, gop_vote_share_state,
         recent_dems_vote_share_senate, recent_gop_vote_share_senate, recent_dems_vote_share_house, recent_gop_vote_share_house,
-        dems_avg_vote_share_senate, gop_avg_vote_share_senate, dems_pres_vote_share, gop_pres_vote_share, subterm 
+        dems_avg_vote_share_senate, gop_avg_vote_share_senate, dems_pres_vote_share, gop_pres_vote_share,fellow_senate_vote_share, subterm 
         FROM merged_nokken_pool
-        WHERE vote_share IS NOT NULL
+        WHERE vote_share IS NOT NULL and (congress >= 95 and congress <= 117 )
         """
 
         cursor = self.conn.cursor()
