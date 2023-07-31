@@ -71,7 +71,9 @@ The program generates the following variables:
 
 - **Description**:  variable that equals the party vote share in the other senate race from the same state.  
 - Suppose, for example, that senators A and B from Colorado won their most recent elections 52%-47% and 55%-41%, respectively.  
-- If A is a Republican but B is a Democrat, then the fellow_senate_share variable should equal 41% for senator A and 47% for senator B.  If A and B are both Democrats then fellow_senate_share should equal 55% for senator A and 52% for senator B.
+- If A is a Republican but B is a Democrat, then the fellow_senate_share variable should equal 41% for senator A and 47% for senator B.  
+- If A and B are both Democrats then fellow_senate_share should equal 55% for senator A and 52% for senator B.
+- Only senators have this value. 
 ---
 ### subterm
 - **Description**: subterm for senator
