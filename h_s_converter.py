@@ -48,17 +48,22 @@ class h_s_converter:
             CAST( ( CASE WHEN MAX(democratvotes) IS NULL THEN 0 ELSE MAX(democratvotes) END ) AS INTEGER) AS democratvotes, 
             CAST((CASE WHEN MAX(republicanvotes) IS NULL THEN 0 ELSE MAX(republicanvotes) END) AS INTEGER) AS republicanvotes
     		FROM (
-    			    SELECT *, CAST((CASE WHEN {} = 'DEMOCRAT' THEN candidatevotes END) AS INTEGER) AS democratvotes,
-    				CAST((CASE WHEN {} = 'REPUBLICAN' THEN candidatevotes END) AS INTEGER) AS republicanvotes
+    			    SELECT *, CAST((CASE WHEN  {} = 'DEMOCRAT' THEN party_vote END) AS INTEGER) AS democratvotes,
+    				CAST((CASE WHEN {} = 'REPUBLICAN' THEN party_vote END) AS INTEGER) AS republicanvotes
     			    FROM 
                     (
-                        SELECT year, state, state_po, office, district,special,stage, candidate, {}, SUM(candidatevotes) as candidatevotes, totalvotes
-                        FROM {}
-                        GROUP BY year, state_po, district,special,candidate
-                        HAVING MAX(candidatevotes))) AS subquery
+						SELECT *, SUM(candidatevotes) AS party_vote
+						FROM (
+							SELECT year, state, state_po, office, district,special,stage, candidate, {}, SUM(candidatevotes) as candidatevotes, totalvotes
+							FROM {}
+							GROUP BY year, state_po, district,special,candidate
+							HAVING MAX(candidatevotes)
+						)
+						GROUP BY year, state_po, district, special, {}
+						HAVING MAX(candidatevotes))) AS subquery
             GROUP BY year, state_po, district, special
             HAVING MAX(candidatevotes);
-            """.format(party_column, party_column, party_column, party_column, original_table)
+            """.format(party_column, party_column, party_column, party_column, original_table, party_column)
 
         df = pd.read_sql_query(senate_query, self.conn)
 

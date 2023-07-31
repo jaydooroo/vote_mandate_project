@@ -11,8 +11,11 @@ The program generates the following variables:
 - **Description**: Nokken-Poole First dimension estimate.
 
 ---
-### abs_nokken_poole_dim1
-- **Description**: Nokken-Poole First dimension estimate as an absolute value.
+### modified_nokken_poole_dim1
+
+- **Description**: It is basically same with Nokken-Poole First dimension estimate, However,
+- it is equal to nokken_poole_dim1 for Republicans and equal to (-1)*(nokken_poole_dim1) for Democrats.
+- Other party member has NULL value for this variable. 
 
 ---
 ### vote_share
@@ -50,11 +53,11 @@ The program generates the following variables:
 ---
 
 ### dems_avg_vote_share_senate
-- **Description**: It represents the average Democrat vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value)
+- **Description**: It represents the average Democrat vote shares of the two senators for that state/year. 
 ---
 
 ### gop_avg_vote_share_senate
-- **Description**: It represents the average Republican vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value)
+- **Description**: It represents the average Republican vote shares of the two senators for that state/year. 
 ---
 
 ### dems_pres_vote_share
@@ -63,6 +66,12 @@ The program generates the following variables:
 
 ### gop_pres_vote_share
 - **Description**: republican vote shares of the most recent presidential election.
+---
+### fellow_senate_vote_share
+
+- **Description**:  variable that equals the party vote share in the other senate race from the same state.  
+- Suppose, for example, that senators A and B from Colorado won their most recent elections 52%-47% and 55%-41%, respectively.  
+- If A is a Republican but B is a Democrat, then the fellow_senate_share variable should equal 41% for senator A and 47% for senator B.  If A and B are both Democrats then fellow_senate_share should equal 55% for senator A and 52% for senator B.
 ---
 ### subterm
 - **Description**: subterm for senator
@@ -287,6 +296,9 @@ Adds a "subterm" column to the "merged_nokken_pool" table. The "subterm" indicat
 
 Adds recent and average vote share for Senate candidates to the "merged_nokken_pool" table. The recent vote share refers to the most recent vote share for senatorial elections in the same state. The average vote share is the average vote share for Senate candidates for each year and state.
 
+**'add_fellow_senate_vote_share()':** 
+Adds fellow senate vote share that equals the party vote share in the other senate race from the same state.
+
 **'create_result_table()':**
     
 Drops all rows that do not have vote share data and saves the modified dataset to a new table named "merged_nokken_poole_1976_2020". This table will contain the final, comprehensive dataset with vote share information for different candidates in various elections.
@@ -311,6 +323,9 @@ converter.add_subterm_senate()
 
 # Add recent and average vote share for Senate candidates
 converter.add_recent_avg_senate_vote_share()
+
+#Add add_fellow_senate_vote_share
+converter.add_fellow_senate_vote_share()
 
 # Create the final result table
 converter.create_result_table()

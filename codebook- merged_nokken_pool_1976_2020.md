@@ -47,9 +47,11 @@ The variables are listed as they appear in the data file.
 
 ---
 
-### abs_nokken_poole_dim1
+### modified_nokken_poole_dim1
 
-- **Description**: Nokken-Poole First dimension estimate but absoulte value.
+- **Description**: It is basically same with Nokken-Poole First dimension estimate, However,
+- it is equal to nokken_poole_dim1 for Republicans and equal to (-1)*(nokken_poole_dim1) for Democrats.
+- Other party member has NULL value for this variable. 
 
 ---
 
@@ -150,14 +152,14 @@ The variables are listed as they appear in the data file.
 
 ### dems_avg_vote_share_senate
 
-- **Description**: It represents the average Democrat vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value).
+- **Description**: It represents the average Democrat vote shares of the two senators for that state/year.
 - based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
 
 ### gop_avg_vote_share_senate
 
-- **Description**: It represents the average Republican vote shares of the two senators for that state/year. (Only rows with chamber = 'senate' have this value)
+- **Description**: It represents the average Republican vote shares of the two senators for that state/year. 
 - based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
@@ -175,6 +177,12 @@ The variables are listed as they appear in the data file.
 - based on the instruction 6: e. This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4)
 
 ---
+
+### fellow_senate_vote_share
+
+- **Description**:  variable that equals the party vote share in the other senate race from the same state.  
+- Suppose, for example, that senators A and B from Colorado won their most recent elections 52%-47% and 55%-41%, respectively.  
+- If A is a Republican but B is a Democrat, then the fellow_senate_share variable should equal 41% for senator A and 47% for senator B.  If A and B are both Democrats then fellow_senate_share should equal 55% for senator A and 52% for senator B.
 
 ### subterm
 
