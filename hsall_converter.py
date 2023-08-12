@@ -17,7 +17,7 @@ class hsall_converter:
     # retrieve HSALL data from the database.
     def convert_HSall_database(self):
         query = """
-          SELECT *
+          SELECT * 
           FROM HSall_members;
           """
 

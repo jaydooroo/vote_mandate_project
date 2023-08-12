@@ -85,11 +85,14 @@ h_s_converter.reflect_name_correction_history('names_modified_history')
 # controller.run()
 
 # converter that is used to merge and add additional variables
+
 ultimate_converter = ult.ultimate_converter(conn)
 
 ultimate_converter.merge_nokken_poole_with_h_s()
 ultimate_converter.add_subterm_senate()
+ultimate_converter.add_term()
 ultimate_converter.add_recent_avg_senate_vote_share()
 ultimate_converter.add_pres_vote_share()
 ultimate_converter.add_fellow_senate_vote_share()
+ultimate_converter.add_senate_house_indication_variable()
 ultimate_converter.create_result_table()

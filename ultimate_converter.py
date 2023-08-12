@@ -39,13 +39,13 @@ class ultimate_converter:
 		    SELECT * 
             FROM name_modified_senate
             );
-
+            
             DROP TABLE IF EXISTS merged_nokken_pool;
 
             CREATE TABLE merged_nokken_pool AS
-            SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, CAST(nokken.district_code as INTEGER) as district, nokken.state_abbrev,
+            SELECT nokken.congress, vote.year,nokken.chamber, nokken.state_icpsr, CAST(nokken.district_code as INTEGER) as district, nokken.state_abbrev,
             nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, 
-			CASE WHEN nokken.party_code = 100 THEN (-1 * nokken.nokken_poole_dim1) 
+			CASE WHEN nokken.party_code = 100 THEN (-1 * nokken.nokken_poole_dim1)  
 			WHEN nokken.party_code = 200 THEN nokken.nokken_poole_dim1 ELSE NULL END as modified_nokken_poole_dim1, 
             CAST(vote.special as INTEGER) as special, vote.stage, vote.party, vote.vote_share, vote.dems_vote_share_district, vote.gop_vote_share_district, 
             vote.dems_vote_share_state, vote.gop_vote_share_state
@@ -54,9 +54,7 @@ class ultimate_converter:
             ON (nokken.bioguide_id = vote.bioguide_id OR nokken.bioname = vote.candidate) AND nokken.congress = vote.congress AND nokken.chamber = vote.chamber 
             AND nokken.state_abbrev = vote.state_po;
         """
-
         cursor = self.conn.cursor()
-
         cursor.executescript(query)
 
     # add presidential election vote share for democratic and republican to merged dataset(merged_nokken_pool)
@@ -67,7 +65,7 @@ class ultimate_converter:
         ALTER TABLE merged_nokken_pool ADD COLUMN dems_pres_vote_share;
         ALTER TABLE merged_nokken_pool ADD COLUMN gop_pres_vote_share;
         
-     UPDATE merged_nokken_pool
+        UPDATE merged_nokken_pool
 		SET dems_pres_vote_share = (
 		
 		SELECT dems_pres_vote_share
@@ -93,20 +91,19 @@ class ultimate_converter:
         cursor = self.conn.cursor()
         cursor.executescript(query)
 
-
     # add subterm column into the merged_nokken_pool table.
     # subterm is only for senate.
     # senator seves for three congress since they have 6 years term.
     # it calculates if the senators are serving first,second or third congress term and assign it to subterm column.
     def add_subterm_senate(self):
         query = """
+        
         ALTER TABLE merged_nokken_pool ADD subterm INTEGER;
 
         UPDATE merged_nokken_pool
         SET subterm = 1
         WHERE vote_share IS NOT NULL AND chamber = 'Senate'; 
-
-
+        
         """
 
         cursor = self.conn.cursor()
@@ -147,6 +144,7 @@ class ultimate_converter:
 
                     if cf_subterm is not None and cf_subterm < 3:
                         df.at[index, 'subterm'] = cf_subterm + 1
+                        df.at[index, 'year'] = df.loc[cf_index, 'year'] + 2
                         df.at[index, 'vote_share'] = df.loc[cf_index, 'vote_share']
                         df.at[index, 'party'] = df.loc[cf_index, 'party']
                         df.at[index, 'special'] = df.loc[cf_index, 'special']
@@ -187,14 +185,14 @@ class ultimate_converter:
         DROP TABLE IF EXiSTS temp_merged_nokken_pool;
 
         CREATE TABLE temp_merged_nokken_pool AS 
-        SELECT nokken.congress, nokken.chamber, nokken.state_icpsr, nokken.district, nokken.state_abbrev,
+        SELECT nokken.congress,CAST(nokken.year AS INTEGER) as year, nokken.chamber, nokken.state_icpsr, nokken.district, nokken.state_abbrev,
         nokken.bioname, nokken.bioguide_id, nokken.nokken_poole_dim1, nokken.modified_nokken_poole_dim1,
         nokken.special, nokken.stage, nokken.party, nokken.vote_share, 
         nokken.dems_vote_share_district, nokken.gop_vote_share_district, 
         nokken.dems_vote_share_state, nokken.gop_vote_share_state,
         recent.recent_dems_vote_share_senate, recent.recent_gop_vote_share_senate, 
         recent.dems_avg_vote_share_senate, recent.gop_avg_vote_share_senate,
-        nokken.subterm
+        nokken.subterm, nokken.term
         FROM merged_nokken_pool nokken
         LEFT JOIN most_recent_senate_vote_share_state recent 
         ON nokken.congress = recent.congress and nokken.state_abbrev = recent.state_abbrev and nokken.chamber = recent.chamber;   
@@ -283,6 +281,7 @@ class ultimate_converter:
     def add_fellow_senate_vote_share(self):
 
         query = """
+        
         ALTER TABLE merged_nokken_pool ADD COLUMN fellow_senate_vote_share;
         
         UPDATE merged_nokken_pool
@@ -304,6 +303,101 @@ class ultimate_converter:
         cursor = self.conn.cursor()
         cursor.executescript(query)
 
+    def add_senate_house_indication_variable(self):
+        query = """
+        
+        ALTER TABLE merged_nokken_pool ADD COLUMN senate;
+        ALTER TABLE merged_nokken_pool ADD COLUMN house;
+
+        UPDATE merged_nokken_pool 
+        SET senate = CASE WHEN chamber = 'Senate' THEN 1 ELSE 0 END,
+        house = CASE WHEN chamber = 'House' THEN 1 ELSE 0 END
+        """
+
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
+    def add_term(self):
+
+        query = """
+            ALTER TABLE merged_nokken_pool ADD COLUMN term INTEGER; 
+        """
+
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
+        query = """
+                    SELECT * 
+                    FROM merged_nokken_pool;
+
+                """
+
+        df = pd.read_sql_query(query, self.conn)
+        df = df.replace({np.nan: None})
+
+        dict_df = {}
+
+        for index, row in df.iterrows():
+
+            congress = row['congress']
+            subterm = row['subterm']
+            state = row['state_abbrev']
+            bioguide_id = row['bioguide_id']
+            bioname = row['bioname']
+            chamber = row['chamber']
+
+            temp_key = str(congress) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+
+            dict_df[temp_key] = index
+
+            if chamber == 'House':
+                cf_key = str(congress - 1) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+
+                if cf_key in dict_df:
+                    cf_index = dict_df[cf_key]
+                    cf_term = df.loc[cf_index, 'term']
+                    if cf_term is not None:
+                        df.at[index, 'term'] = cf_term + 1
+                else:
+                    df.at[index, 'term'] = 1
+
+            elif chamber == 'Senate':
+                if subterm is not None and subterm > 1:
+                    cf_key = str(congress - 1) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+                    if cf_key in dict_df:
+                        cf_index = dict_df[cf_key]
+                        cf_term = df.loc[cf_index, 'term']
+
+                        if cf_term is not None:
+                            df.at[index, 'term'] = cf_term
+                    else:
+                        df.at[index, 'term'] = 1
+
+                elif subterm is not None and subterm == 1:
+                    cf_key = str(congress - 1) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+                    if cf_key in dict_df:
+                        cf_index = dict_df[cf_key]
+                        cf_term = df.loc[cf_index, 'term']
+
+                        if cf_term is not None:
+                            df.at[index, 'term'] = cf_term + 1
+                    else:
+                        df.at[index, 'term'] = 1
+
+                else:
+                    cf_key = str(congress - 3) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+                    if cf_key in dict_df:
+                        cf_index = dict_df[cf_key]
+                        cf_term = df.loc[cf_index, 'term']
+
+                        if cf_term is not None:
+                            df.at[index, 'term'] = cf_term + 1
+
+                    else:
+                        df.at[index, 'term'] = 1
+
+        self.upload_df_to_database(df, 'merged_nokken_pool')
+
     # Drop all the rows that does not have vote share and save it to the new table "merged_nokken_poole_1976_2020"
     def create_result_table(self):
 
@@ -311,10 +405,26 @@ class ultimate_converter:
         DROP TABLE IF EXiSTS merged_nokken_poole_1976_2020;
         
         CREATE TABLE merged_nokken_poole_1976_2020 AS
-        SELECT congress, chamber, district, state_abbrev, bioname, bioguide_id, nokken_poole_dim1,modified_nokken_poole_dim1,
-        special, stage, party, vote_share, dems_vote_share_district, gop_vote_share_district, dems_vote_share_state, gop_vote_share_state,
-        recent_dems_vote_share_senate, recent_gop_vote_share_senate, recent_dems_vote_share_house, recent_gop_vote_share_house,
-        dems_avg_vote_share_senate, gop_avg_vote_share_senate, dems_pres_vote_share, gop_pres_vote_share,fellow_senate_vote_share, subterm 
+        SELECT congress,year, chamber, district, state_abbrev, bioname, bioguide_id, nokken_poole_dim1,modified_nokken_poole_dim1,
+        special, stage, party, vote_share as vs, dems_vote_share_district as dems_vs_district, gop_vote_share_district as gop_vs_district,
+		dems_vote_share_district/(dems_vote_share_district + gop_vote_share_district) as DR_dems_vs_district,
+		gop_vote_share_district / (dems_vote_share_district + gop_vote_share_district) as DR_gop_vs_district,
+		dems_vote_share_state as dems_vs_state, gop_vote_share_state as gop_vs_state,
+		dems_vote_share_state / (dems_vote_share_state + gop_vote_share_state) as DR_dems_vs_state,
+		gop_vote_share_state / (dems_vote_share_state + gop_vote_share_state) as DR_gop_vs_state, 
+        recent_dems_vote_share_senate as recent_dems_vs_senate, recent_gop_vote_share_senate as recent_gop_vs_senate, 
+		recent_dems_vote_share_senate / (recent_dems_vote_share_senate + recent_gop_vote_share_senate) as DR_recent_dems_vs_senate,
+		recent_gop_vote_share_senate / (recent_dems_vote_share_senate + recent_gop_vote_share_senate) as DR_recent_gop_vs_senate,
+		recent_dems_vote_share_house as recent_dems_vs_house, recent_gop_vote_share_house as recent_gop_vs_house,
+		recent_dems_vote_share_house / (recent_dems_vote_share_house + recent_gop_vote_share_house) as DR_recent_dems_vs_house,
+		recent_gop_vote_share_house / (recent_dems_vote_share_house + recent_gop_vote_share_house) as DR_recent_gop_vs_house, 
+        dems_avg_vote_share_senate as dems_avg_vs_senate, gop_avg_vote_share_senate as gop_avg_vs_senate, 
+		dems_avg_vote_share_senate / (dems_avg_vote_share_senate + gop_avg_vote_share_senate) as DR_dems_avg_vs_senate,
+		gop_avg_vote_share_senate / (dems_avg_vote_share_senate + gop_avg_vote_share_senate) as DR_gop_avg_vs_senate,
+		dems_pres_vote_share as dems_pres_vs, gop_pres_vote_share as gop_pres_vs, 
+		dems_pres_vote_share / (dems_pres_vote_share + gop_pres_vote_share) as DR_dems_pres_vs,
+		gop_pres_vote_share / (dems_pres_vote_share + gop_pres_vote_share) as DR_gop_pres_vs,
+		fellow_senate_vote_share as fellow_senate_vs, senate, house ,subterm , term
         FROM merged_nokken_pool
         WHERE vote_share IS NOT NULL and (congress >= 95 and congress <= 117 )
         """

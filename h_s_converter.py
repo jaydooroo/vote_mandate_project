@@ -32,17 +32,33 @@ class h_s_converter:
 
         elif office_type.upper() == 'S':
             original_table = 'from1976to2020_senate'
-            party_column = 'party_simplified'
+            party_column = 'party_detailed'
             modified_table = 'name_modified_senate'
         else:
             # need to be modified later when I get the proper president database.
             original_table = 'president'
+
+        query = """
+        UPDATE {}
+            SET {} = 'DEMOCRAT' 
+            WHERE {} = 'DEMOCRATIC-FARMER-LABOR' OR {} = 'DEMOCRAT (NOT IDENTIFIED ON BALLOT)' OR {} = 'DEMOCRATIC-NONPARTISAN LEAGUE'  ;
+            
+        UPDATE {}
+            SET {} = 'REPUBLICAN'
+            WHERE {}	= 'INDEPENDENT REPUBLICAN PARTY' OR {} = 'INDEPENDENT-REPUBLICAN' ;
+            """.format(original_table,party_column, party_column, party_column, party_column, original_table, party_column, party_column, party_column)
+
+        cursor = self.conn.cursor()
+        cursor.executescript(query)
+
+
 
         # Generating democrat, republican, total votes of every election.
         # I put special here - > shoul be modified later I think. special data set-> the output query below also have special election data seperated from the normal one.
         #  Therefore, the query coming after blow query should be implemented using which election between special and normal
         # applied -> need to decide first which one we should apply.
         senate_query = """
+        
             SELECT year, state, state_po, office, district,special, stage, candidate, {}, candidatevotes, 
             CAST(( CASE WHEN MAX(totalvotes) IS NULL THEN 0 ELSE MAX(totalvotes) END ) AS INTEGER) AS totalvotes,
             CAST( ( CASE WHEN MAX(democratvotes) IS NULL THEN 0 ELSE MAX(democratvotes) END ) AS INTEGER) AS democratvotes, 
@@ -188,7 +204,7 @@ class h_s_converter:
 
             if row['office'] == 'US SENATE':
                 year_term = 6
-                party_column = 'party_simplified'
+                party_column = 'party_detailed'
                 mark = 's'
             elif row['office'] == 'US HOUSE':
                 year_term = 2
@@ -251,7 +267,7 @@ class h_s_converter:
         for index, row in df.iterrows():
             if row['office'] == 'US SENATE':
                 year_term = 6
-                party_column = 'party_simplified'
+                party_column = 'party_detailed'
                 mark = 's'
             elif row['office'] == 'US HOUSE':
                 year_term = 2
@@ -283,6 +299,12 @@ class h_s_converter:
                 result_df = result_df.append(row)
         return result_df
 
+    # def add_term(self,  df):
+    #
+    #     dict_df = {}
+    #
+    #     temp_key = str(year) + str(state) + str(bioguide_id) + str(bioname)
+
     # reflect history stored in database. (Name is indicated in history_db_name)
     def reflect_name_correction_history(self, history_db_name):
 
@@ -312,7 +334,7 @@ class h_s_converter:
     # INPUT: df_error_names -> dataframe that has names to be modified, df_correct_names -> dataframe that has correct names(should be hsall dataset)
     # limit_similarity: similarity where we want to automatically match the names if the similarity of the names exceed.
     def auto_correct_names(self, df_error_names: pd.DataFrame, df_correct_names: pd.DataFrame,
-                              limit_similarity):
+                           limit_similarity):
         # df error_names how should we compare and decide if they are the same name or not
         # 1. year -> calculate with congress number, 2. state, 3. first and last name -> set the similarity and decide accordingly
         # if one side has only one name -> compare only that part and see -> store this in to another dataframe and return it.
