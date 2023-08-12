@@ -192,7 +192,7 @@ class ultimate_converter:
         nokken.dems_vote_share_state, nokken.gop_vote_share_state,
         recent.recent_dems_vote_share_senate, recent.recent_gop_vote_share_senate, 
         recent.dems_avg_vote_share_senate, recent.gop_avg_vote_share_senate,
-        nokken.subterm, nokken.term
+        nokken.subterm
         FROM merged_nokken_pool nokken
         LEFT JOIN most_recent_senate_vote_share_state recent 
         ON nokken.congress = recent.congress and nokken.state_abbrev = recent.state_abbrev and nokken.chamber = recent.chamber;   
@@ -328,7 +328,8 @@ class ultimate_converter:
 
         query = """
                     SELECT * 
-                    FROM merged_nokken_pool;
+                    FROM merged_nokken_pool
+                    WHERE vote_share IS NOT NULL ;
 
                 """
 
@@ -383,18 +384,17 @@ class ultimate_converter:
                             df.at[index, 'term'] = cf_term + 1
                     else:
                         df.at[index, 'term'] = 1
-
-                else:
-                    cf_key = str(congress - 3) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
-                    if cf_key in dict_df:
-                        cf_index = dict_df[cf_key]
-                        cf_term = df.loc[cf_index, 'term']
-
-                        if cf_term is not None:
-                            df.at[index, 'term'] = cf_term + 1
-
-                    else:
-                        df.at[index, 'term'] = 1
+                # else:
+                #     cf_key = str(congress - 3) + str(state) + str(bioguide_id) + str(bioname) + str(chamber)
+                #     if cf_key in dict_df:
+                #         cf_index = dict_df[cf_key]
+                #         cf_term = df.loc[cf_index, 'term']
+                #
+                #         if cf_term is not None:
+                #             df.at[index, 'term'] = cf_term + 1
+                #
+                #     else:
+                #         df.at[index, 'term'] = 1
 
         self.upload_df_to_database(df, 'merged_nokken_pool')
 
