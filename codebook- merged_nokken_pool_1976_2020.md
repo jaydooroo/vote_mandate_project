@@ -88,25 +88,25 @@ The variables are listed as they appear in the data file.
 
 ---
 
-### vote_share
+### vs
 
 - **Description**: It represents the vote shares for the candidate of the respective election they had. (Note: Pre-election votes and general election votes are included to calculate the vote share. Sometimes pre-election is used to select the winner of the election. It is hard to distinguish whether each election is the main election or not. Therefore, everything is included.)
 
 ---
 
-### dems_vote_share_district
+### dems_vs_district
 
 - **Description**: It represents the total Democratic party vote shares in the particular district (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
 
 ---
 
-### gop_vote_share_district
+### gop_vs_district
 
 - **Description**: It represents the total Republican party vote shares in the particular district (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
 
 ---
 
-### dems_vote_share_state
+### dems_vs_state
 
 - **Description**: It represents the total Democratic party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes). senate and house has their own seperate value.(calculated by the office seperately)
   - **Note**:
@@ -114,7 +114,7 @@ The variables are listed as they appear in the data file.
 
 ---
 
-### gop_vote_share_state
+### gop_vs_state
 
 - **Description**: It represents the total Republican party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).senate and house has their own seperate value.(calculated by the office seperately)
   - **Note**:
@@ -122,63 +122,63 @@ The variables are listed as they appear in the data file.
 
 ---
 
-### recent_dems_vote_share_senate
+### recent_dems_vs_senate
 
 - **Description**: It represents the Democrat vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
 - based on the instruction 5: d. Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value.
 
 ---
 
-### recent_gop_vote_share_senate
+### recent_gop_vs_senate
 
 - **Description**: It represents the Republican vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
 - based on the instruction 5: d. Create “Most recent senate Democrat vote share” and “Most recent Senate Republican vote share” columns, set equal to the Democrat and Republican vote shares of the Senator with the lowest subterm value.
 
 ---
 
-### recent_dems_vote_share_house
+### recent_dems_vs_house
 
 - **Description**: It represents the Democrat vote shares of the congressman with the most recent election result of the particular state (basically same as dems_vote_share_state for the House election).
 - based on the instruction 10: Senators should also have variables indicting total party vote share in most recent House races combined, and same-party vote share for fellow senator in the state.
 
 ---
 
-### recent_gop_vote_share_house
+### recent_gop_vs_house
 
 - **Description**: It represents the Republican vote shares of the congressman with the most recent election result of the particular state (basically same as gop_vote_share_state for the House election).
 - based on the instruction 10: Senators should also have variables indicting total party vote share in most recent House races combined, and same-party vote share for fellow senator in the state.
 
 ---
 
-### dems_avg_vote_share_senate
+### dems_avg_vs_senate
 
 - **Description**: It represents the average Democrat vote shares of the two senators for that state/year.
 - based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
 
-### gop_avg_vote_share_senate
+### gop_avg_vs_senate
 
 - **Description**: It represents the average Republican vote shares of the two senators for that state/year. 
 - based on the instruction 5: Create “Average senate Democrat vote share” and “Average senate Republican vote share” columns, set equal to the average Democrat and Repbulican vote shares of the two senators for that state/year.
 
 ---
 
-### dems_pres_vote_share
+### dems_pres_vs
 
 - **Description**: democrat vote shares of the most recent presidential election.
 - based on the instruction 6: e. This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4)
 
 ---
 
-### gop_pres_vote_share
+### gop_pres_vs
 
 - **Description**: republican vote shares of the most recent presidential election.
 - based on the instruction 6: e. This should leave us with D & R vote shares for every presidential election year (divisible by 4); copy data into off-election years (divisible by two but not 4)
 
 ---
 
-### fellow_senate_vote_share
+### fellow_senate_vs
 
 - **Description**:  variable that equals the party vote share in the other senate race from the same state.  
 - Suppose, for example, that senators A and B from Colorado won their most recent elections 52%-47% and 55%-41%, respectively.  
@@ -190,5 +190,11 @@ The variables are listed as they appear in the data file.
 - based on the instruction 5: a. Create “subterm” variable 1,2,3 for election year (1), subsequent year (2), sub-subsequent year (3); vote share will be present in subterm 1 but missing in subterms 2 and 3
 
 ---
-
+### experience
+- **Description**: years that each politician has served in the congress until the according congress 
+---
+### total_exp
+- **Description**: total years that each politician has served in the congress. 
+---
 ## NOTES:
+If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans

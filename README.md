@@ -18,67 +18,88 @@ The program generates the following variables:
 - Other party member has NULL value for this variable. 
 
 ---
-### vote_share
+### vs
 - **Description**: It represents the vote shares for the candidate of the respective election they had.
 
 ---
-### dems_vote_share_district
+### dems_vs_district
 
 - **Description**: It represents the total Democratic party vote shares in the particular district (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-### gop_vote_share_district
+
+### gop_vs_district
 - **Description**: It represents the total Democratic party vote shares in the particular district (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-### dems_vote_share_state
+### dems_vs_state
 - **Description**: It represents the total Democratic party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### gop_vote_share_state
+### gop_vs_state
 - **Description**: It represents the total Republican party vote shares in the particular state (If many other parties support a single candidate, we combine all the votes and consider it as the major party votes).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-### recent_dems_vote_share_senate
+### recent_dems_vs_senate
 - **Description**: It represents the Democrat vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
 ---
-### recent_gop_vote_share_senate
+### recent_gop_vs_senate
 
 - **Description**: It represents the Republican vote shares of the Senator with the lowest subterm value (most recent election result of the particular state for a senator).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### recent_dems_vote_share_house
+### recent_dems_vs_house
 - **Description**: It represents the Democrat vote shares of the congressman with the most recent election result of the particular state (basically same as dems_vote_share_state for the House election).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### recent_gop_vote_share_house
+### recent_gop_vs_house
 - **Description**: It represents the Republican vote shares of the congressman with the most recent election result of the particular state (basically same as gop_vote_share_state for the House election).
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### dems_avg_vote_share_senate
+### dems_avg_vs_senate
 - **Description**: It represents the average Democrat vote shares of the two senators for that state/year. 
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### gop_avg_vote_share_senate
+### gop_avg_vs_senate
 - **Description**: It represents the average Republican vote shares of the two senators for that state/year. 
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### dems_pres_vote_share
+### dems_pres_vs
 - **Description**: democrat vote shares of the most recent presidential election.
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 
-### gop_pres_vote_share
+### gop_pres_vs
 - **Description**: republican vote shares of the most recent presidential election.
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-### fellow_senate_vote_share
+### fellow_senate_vs
 
 - **Description**:  variable that equals the party vote share in the other senate race from the same state.  
 - Suppose, for example, that senators A and B from Colorado won their most recent elections 52%-47% and 55%-41%, respectively.  
 - If A is a Republican but B is a Democrat, then the fellow_senate_share variable should equal 41% for senator A and 47% for senator B.  
 - If A and B are both Democrats then fellow_senate_share should equal 55% for senator A and 52% for senator B.
 - Only senators have this value. 
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
 ### subterm
 - **Description**: subterm for senator
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-
+### experience
+- **Description**: years that each politician has served in the congress until the according congress 
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
+---
+### total_exp
+- **Description**: total years that each politician has served in the congress. 
+- **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
+---
 The more explanation of each variable is described in codebook-merged_nokken_pool_1976_2020.md file.
 
 There are three big parts of this program.
@@ -300,6 +321,12 @@ Adds recent and average vote share for Senate candidates to the "merged_nokken_p
 
 **'add_fellow_senate_vote_share()':** 
 Adds fellow senate vote share that equals the party vote share in the other senate race from the same state.
+
+**'add_senate_house_indication_variable()':** 
+ Add senate and house indication variable. 
+
+**'add_experience()':**
+ Add experience of each politician has in the congress(year wise)
 
 **'create_result_table()':**
     
