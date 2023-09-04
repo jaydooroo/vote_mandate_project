@@ -320,7 +320,7 @@ class ultimate_converter:
     def add_experience(self):
 
         query = """
-            ALTER TABLE merged_nokken_pool ADD COLUMN experience INTEGER;
+            ALTER TABLE merged_nokken_pool ADD COLUMN exp INTEGER;
             ALTER TABLE merged_nokken_pool ADD COLUMN total_exp INTEGER; 
         """
 
@@ -331,13 +331,6 @@ class ultimate_converter:
                     SELECT * 
                     FROM merged_nokken_pool
                 """
-
-        # query = """
-        #             SELECT *
-        #             FROM merged_nokken_pool
-        #             WHERE vote_share IS NOT NULL ;
-        #
-        #         """
 
         df = pd.read_sql_query(query, self.conn)
         df = df.replace({np.nan: None})
@@ -359,7 +352,7 @@ class ultimate_converter:
             else:
                 exp_dict[exp_key] = 2
 
-            df.at[index, 'experience'] = exp_dict[exp_key]
+            df.at[index, 'exp'] = exp_dict[exp_key]
 
         for index, row in df.iterrows():
             state = row['state_abbrev']
@@ -731,7 +724,7 @@ class ultimate_converter:
 		dems_pres_vote_share as dems_pres_vs, gop_pres_vote_share as gop_pres_vs, 
 		dems_pres_vote_share / (dems_pres_vote_share + gop_pres_vote_share) as DR_dems_pres_vs,
 		gop_pres_vote_share / (dems_pres_vote_share + gop_pres_vote_share) as DR_gop_pres_vs,
-		fellow_senate_vote_share as fellow_senate_vs, senate, house ,subterm , experience, total_exp
+		fellow_senate_vote_share as fellow_senate_vs, senate, house ,subterm , exp, total_exp
         FROM merged_nokken_pool
         WHERE vote_share IS NOT NULL and (congress >= 95 and congress <= 117 )
         """

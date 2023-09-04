@@ -190,7 +190,7 @@ The variables are listed as they appear in the data file.
 - based on the instruction 5: a. Create “subterm” variable 1,2,3 for election year (1), subsequent year (2), sub-subsequent year (3); vote share will be present in subterm 1 but missing in subterms 2 and 3
 
 ---
-### experience
+### exp
 - **Description**: years that each politician has served in the congress until the according congress 
 ---
 ### total_exp

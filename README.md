@@ -92,7 +92,7 @@ The program generates the following variables:
 - **Description**: subterm for senator
 - **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
-### experience
+### exp
 - **Description**: years that each politician has served in the congress until the according congress 
 - **Note**: If DR comes first in the name of the column-> vote share among the subtotal only of votes cast for Democrats or Republicans
 ---
