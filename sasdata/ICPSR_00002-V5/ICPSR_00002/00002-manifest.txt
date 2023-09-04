@@ -1,0 +1,47 @@
+File Manifest for ICPSR 2
+
+Inter-university Consortium for Political and Social Research. Candidate
+Name and Constituency Totals, 1788-1990. ICPSR00002-v5. Ann Arbor, MI:
+Inter-university Consortium for Political and Social Research
+[distributor], 1995. http://doi.org/10.3886/ICPSR00002.v5
+
+
+Study-level Documentation
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    00002-descriptioncitation.pdf       -       -         -       2015-02-24  -
+
+    00002-related_literature.txt        -       -         -       daily       -
+
+    00002-manifest.txt                  -       -         -       daily       -
+
+
+DS0001 Data File
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    00002-0001-Codebook.txt             -       -         -       1995-10-20  4dc8cba4e12491e71d09c2840c8b20ac
+
+    00002-0001-Data.txt                 80      120,146   13      1995-10-20  bea88919b8ee92a600e7daff6dc99e5d
+
+    00002-0001-Setup.sps                -       -         -       1995-10-20  27870f3446caa41dba3793bc241452a0
+
+
+DS0002 SAS Data Definition Statements
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    00002-0002-Setup.sas                -       -         -       1997-06-03  266197685f490680b29a84463db27ae4
+
+
+DS0010 ICPSR State and County Codes Based on 1960 FIPS Codes (Text File)
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    00002-0010-Data.txt                 23      3,398     unknown 1995-10-20  8f89cec90dfcd15067e41c49eda6ed74
+
